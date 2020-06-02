@@ -6,8 +6,12 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
 
+
+
 var geometry = new THREE.BoxGeometry();
 var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+//var texture = new THREE.TextureLoader().load('art/figures.jpg');
+//var material = new THREE.MeshBasicMaterial({map:texture});
 var cube = new THREE.Mesh( geometry, material );
 scene.add( cube );
 
@@ -22,7 +26,10 @@ function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 	console.log(vertices);
 	wall_geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
 
-	var wall_material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide});
+	//var wall_material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide});
+	var texture = new THREE.TextureLoader().load('art/figures.jpg');
+	var wall_material = new THREE.MeshBasicMaterial({map:texture, side: THREE.DoubleSide});
+
 	var plane = new THREE.Mesh(wall_geometry, wall_material);
 //console.log(plane.vertices)
 	scene.add(plane)
@@ -32,9 +39,9 @@ function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 
 
 function make_wall(top_left, top_right, bottom_left, bottom_right){
-	geometry = new THREE.BufferGeometry().setFromPoints([top_left, top_right, ])
+	geometry = new THREE.BufferGeometry().setFromPoints([top_left, top_right, bottom_left, bottom_right]);
 
-	var iterator = 0;
+	//var iterator = 0;
 
 
 /*
@@ -92,7 +99,7 @@ function make_wall(top_left, top_right, bottom_left, bottom_right){
 
 }
 
-top_left_lw = [-1.0, 4.0, 2.0];
+/*top_left_lw = [-1.0, 4.0, 2.0];
 top_right_lw = [1.0, 4.0, -2.0];
 bottom_right_lw = [1.0, -4.0, -2.0];
 bottom_left_lw = [1.0, -4.0, 2.0];
@@ -105,8 +112,9 @@ bottom_left_rw = [1.0, -4.0, -2.0];
 bottom_right_rw= [1.0, -4.0, 2.0];
 
 right_wall = make_wall(top_left_rw, top_right_rw, bottom_left_rw, bottom_right_rw);
+*/
 
-/*
+
 
 
 var left_wall = new Float32Array( [
@@ -131,7 +139,7 @@ var right_wall= new Float32Array( [
 ] );
 
 
-*/
+
 
 
 
@@ -162,8 +170,8 @@ camera.position.z = 5;
 function animate() {
 	requestAnimationFrame( animate );
 	renderer.render( scene, camera );
-	cube.rotation.x += 0.01;
-	cube.rotation.y += 0.01;
+	//cube.rotation.x += 0.01;
+	//cube.rotation.y += 0.01;
 }
 
 function moveCamera(event){
