@@ -9,11 +9,11 @@ document.body.appendChild( renderer.domElement );
 
 
 var geometry = new THREE.BoxGeometry();
-var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-//var texture = new THREE.TextureLoader().load('art/figures.jpg');
-//var material = new THREE.MeshBasicMaterial({map:texture});
+//var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+var texture = new THREE.TextureLoader().load('art/figures.jpg');
+var material = new THREE.MeshBasicMaterial({map:texture});
 var cube = new THREE.Mesh( geometry, material );
-scene.add( cube );
+//scene.add( cube );
 
 var wall_color = 0xffffff;
 
@@ -38,83 +38,42 @@ function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 
 
 
-function make_wall(top_left, top_right, bottom_left, bottom_right){
-	geometry = new THREE.BufferGeometry().setFromPoints([top_left, top_right, bottom_left, bottom_right]);
-
-	//var iterator = 0;
-
-
-/*
-	// Triangle 1: TL, TR, BR
-	total_length = 3;
-	for (iterator = total_length; iterator < total_length; iterator++){
-		wall[iterator] = top_left[0];
-		wall[iterator+1] = top_left[1];
-		wall[iterator+2] = top_left[2];
-	}
-	total_length += 3
-	for (iterator = total_length; iterator < total_length; iterator++)
-	{
-		wall[iterator] = top_right[0];
-		wall[iterator] = top_right[1];
-		wall[iterator] = top_right[2];
-	}
-	total_length += 3
-	for (iterator = total_length; iterator < total_length; iterator++)
-	{
-		wall[iterator] = bottom_right[0];
-		wall[iterator] = bottom_right[1];
-		wall[iterator] = bottom_right[2];
-	}
+function make_wall(width, height, depth, position, material){
+	wall = new THREE.BoxBufferGeometry(width, height, depth, 1, 1, 1);
+	console.log("Height:" + wall.parameters.height);
 
 
-	// Triangle 2: TL, BL, BR
-	total_length += 3
-	for (iterator = total_length; iterator < total_length; iterator++)
-	{
-		wall[iterator] = top_left[0];
-		wall[iterator] = top_left[1];
-		wall[iterator] = top_right[2];
-	}
-
-
-	total_length += 3
-	for (iterator = total_length; iterator < total_length; iterator++)
-	{
-		wall[iterator] = bottom_left[0];
-		wall[iterator] = bottom_left[1];
-		wall[iterator] = bottom_left[2];
-	}
-
-	total_length += 3
-	for (iterator = total_length; iterator < total_length; iterator++)
-	{
-		wall[iterator] = bottom_right[0],
-		wall[iterator] = bottom_right[1],
-		wall[iterator] = bottom_right[2]
-	}
+	console.log(position);
+	
+	//var material = new THREE.MeshBasicMaterial({color:0x00ff00});
+	var new_wall = new THREE.Mesh(geometry, material);
+	//new_wall.geometry.setAttribute("width", width);
+	/*var x_axis = new THREE.Vector3(1,0,0);
+	var y_axis = new THREE.Vector3(0,1,0);
+	var z_axis = new THREE.Vector3(0,0,1);
+	new_wall.translateOnAxis(x_axis, position.x);
+	new_wall.translateOnAxis(y_axis, position.y);
+	new_wall.translateOnAxis(z_axis, position.z);
+	console.log("New position:")
 	*/
-	console.log(wall);
-	return wall;
+	console.log(new_wall.position);
+	new_wall.geometry.parameters.width = width;
+	new_wall.geometry.parameters.height = height;
+	new_wall.geometry.parameters.depth = depth;
+	new_wall.updateMatrix();
+
+	console.log("Height:" + new_wall.geometry.parameters.height);
+
+
+
+	scene.add(new_wall);
+	//wall = new THREE.BufferGeometry().setFromPoints([top_left, top_right, bottom_left, bottom_right]);
 
 }
 
-/*top_left_lw = [-1.0, 4.0, 2.0];
-top_right_lw = [1.0, 4.0, -2.0];
-bottom_right_lw = [1.0, -4.0, -2.0];
-bottom_left_lw = [1.0, -4.0, 2.0];
-
-left_wall = make_wall(top_left_lw, top_right_lw, bottom_left_lw, bottom_right_lw);
-
-top_left_rw = [1.0, 4.0, -2.0];
-top_right_rw = [1.0, 4.0, 2.0];
-bottom_left_rw = [1.0, -4.0, -2.0];
-bottom_right_rw= [1.0, -4.0, 2.0];
-
-right_wall = make_wall(top_left_rw, top_right_rw, bottom_left_rw, bottom_right_rw);
-*/
-
-
+var left_wall_material = new THREE.MeshBasicMaterial({color:0x0000ff});
+var left_wall_position = new THREE.Vector3(-2.0, -3.0, 2.0);
+make_wall(1.0, 24.0, 4.0, left_wall_position, left_wall_material);
 
 
 var left_wall = new Float32Array( [
@@ -145,21 +104,21 @@ var right_wall= new Float32Array( [
 
 
 var back_wall = new Float32Array( [
-	 -0.0,  5.0,  -4.0,
-	 -0.0, -5.0, -4.0,
-	 -0.0,  5.0, -4.0,
+	 3.0,  5.0,  -6.0,
+	 3.0, -5.0, -6.0,
+	-3.0,  5.0, -6.0,
 
-	 -0.0, 5.0,  -4.0,
-	 -0.0,  5.0,  -4.0,
-	 -0.0, -5.0, -4.0
+	-3.0, 5.0,  -6.0,
+	-3.0, -5.0,  -6.0,
+	 3.0, -5.0, -6.0
 ] );
 
 
 console.log("right_wall")
 add_plane(right_wall);
-console.log("left_wall")
-add_plane(left_wall);
-//console.log("back_wall")
+//console.log("left_wall")
+//add_plane(left_wall);
+console.log("back_wall")
 add_plane(back_wall);
 
 
@@ -170,8 +129,8 @@ camera.position.z = 5;
 function animate() {
 	requestAnimationFrame( animate );
 	renderer.render( scene, camera );
-	cube.rotation.x += 0.01;
-	cube.rotation.y += 0.01;
+	//cube.rotation.x += 0.01;
+	//cube.rotation.y += 0.01;
 }
 
 
