@@ -26,9 +26,9 @@ function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 	console.log(vertices);
 	wall_geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
 
-	//var wall_material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide});
-	var texture = new THREE.TextureLoader().load('art/figures.jpg');
-	var wall_material = new THREE.MeshBasicMaterial({map:texture, side: THREE.DoubleSide});
+	var wall_material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide});
+	//var texture = new THREE.TextureLoader().load('art/figures.jpg');
+	//var wall_material = new THREE.MeshBasicMaterial({map:texture, side: THREE.DoubleSide});
 
 	var plane = new THREE.Mesh(wall_geometry, wall_material);
 //console.log(plane.vertices)
@@ -170,14 +170,58 @@ camera.position.z = 5;
 function animate() {
 	requestAnimationFrame( animate );
 	renderer.render( scene, camera );
-	//cube.rotation.x += 0.01;
-	//cube.rotation.y += 0.01;
+	cube.rotation.x += 0.01;
+	cube.rotation.y += 0.01;
 }
 
-function moveCamera(event){
-	console.log("moving camera");
-	var keytype = event.code;
-	alert("Pressed a key: " + keytype);
-}
+
+
+window.addEventListener('mousemove', function(e){
+	//console.log("Mouse moved");
+	//console.log(event.x);
+});
+
+
+
+window.addEventListener('keypress', function(e){
+	console.log("key Pressed");
+	var pressed_key = event.key;
+	console.log(event.key);
+	var target = THREE.Vector3();
+	var lookVec = camera.getWorldDirection(target);
+	var upVec = THREE.Vector3(0, 1, 0);
+
+	rotate_left = new THREE.Euler(0, Math.PI/2, 0, 'XYZ');
+	rotate_right = new THREE.Euler(0, -Math.PI/2, 0, 'XYZ');
+	var left_movement;
+	var right_movement;
+
+	console.log(lookVec);
+	switch(pressed_key){
+		case 's':
+			camera.position.x -= lookVec.x;
+			camera.position.y -= lookVec.y;
+			camera.position.z -= lookVec.z;	
+			break;
+		case 'w':
+			camera.position.x += lookVec.x;
+			camera.position.y += lookVec.y;
+			camera.position.z += lookVec.z;
+			break;
+		case 'a':
+			left_movement = lookVec.applyEuler(rotate_left);
+			camera.position.x += left_movement.x;
+			camera.position.y += left_movement.y;
+			camera.position.z += left_movement.z;
+			break;
+		case 'd':
+			left_movement = lookVec.applyEuler(rotate_right);
+			camera.position.x += left_movement.x;
+			camera.position.y += left_movement.y;
+			camera.position.z += left_movement.z;
+			break;
+	}
+	//console.log(event.x);
+});
 
 animate();
