@@ -6,6 +6,10 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
 
+var x_axis = new THREE.Vector3(1, 0, 0);
+var y_axis = new THREE.Vector3(0, 1, 0);
+var z_axis = new THREE.Vector3(0, 0, 1);
+
 
 
 var geometry = new THREE.BoxGeometry();
@@ -159,28 +163,39 @@ window.addEventListener('keypress', function(e){
 	switch(pressed_key){
 		case 's':
 			camera.position.x -= lookVec.x;
-			camera.position.y -= lookVec.y;
+			//camera.position.y -= lookVec.y;
 			camera.position.z -= lookVec.z;	
 			break;
 		case 'w':
 			camera.position.x += lookVec.x;
-			camera.position.y += lookVec.y;
+			//camera.position.y += lookVec.y;
 			camera.position.z += lookVec.z;
 			break;
 		case 'a':
 			left_movement = lookVec.applyEuler(rotate_left);
 			camera.position.x += left_movement.x;
-			camera.position.y += left_movement.y;
+			//camera.position.y += left_movement.y;
 			camera.position.z += left_movement.z;
 			break;
 		case 'd':
 			left_movement = lookVec.applyEuler(rotate_right);
 			camera.position.x += left_movement.x;
-			camera.position.y += left_movement.y;
+			//camera.position.y += left_movement.y;
 			camera.position.z += left_movement.z;
 			break;
 	}
 	//console.log(event.x);
+});
+
+window.addEventListener('mousemove', function(e){
+	var horizontal_rot = event.movementX * -0.02;
+	var vertical_rot = event.movementY * -0.02;
+
+	// Horizontal rotation about up vector
+	camera.rotateOnAxis(y_axis, horizontal_rot);
+
+	// Vertical rotation about side vector
+	camera.rotateOnAxis(x_axis, vertical_rot);
 });
 
 animate();
