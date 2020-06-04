@@ -42,89 +42,63 @@ function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 
 
 
+// Makes a box with given w,h,d,pos,and material
 function make_wall(width, height, depth, position, material){
-	wall = new THREE.BoxBufferGeometry(width, height, depth, 1, 1, 1);
-	console.log("Height:" + wall.parameters.height);
+	wall = new THREE.BoxGeometry(width, height, depth);	
+	var new_wall = new THREE.Mesh(wall, material);
 
-
-	console.log(position);
-	
-	//var material = new THREE.MeshBasicMaterial({color:0x00ff00});
-	var new_wall = new THREE.Mesh(geometry, material);
-	//new_wall.geometry.setAttribute("width", width);
-	/*var x_axis = new THREE.Vector3(1,0,0);
-	var y_axis = new THREE.Vector3(0,1,0);
-	var z_axis = new THREE.Vector3(0,0,1);
 	new_wall.translateOnAxis(x_axis, position.x);
 	new_wall.translateOnAxis(y_axis, position.y);
 	new_wall.translateOnAxis(z_axis, position.z);
-	console.log("New position:")
-	*/
-	console.log(new_wall.position);
-	new_wall.geometry.parameters.width = width;
-	new_wall.geometry.parameters.height = height;
-	new_wall.geometry.parameters.depth = depth;
-	new_wall.updateMatrix();
-
-	console.log("Height:" + new_wall.geometry.parameters.height);
-
-
 
 	scene.add(new_wall);
-	//wall = new THREE.BufferGeometry().setFromPoints([top_left, top_right, bottom_left, bottom_right]);
-
 }
 
-var left_wall_material = new THREE.MeshBasicMaterial({color:0x0000ff});
-var left_wall_position = new THREE.Vector3(-2.0, -3.0, 2.0);
-make_wall(1.0, 24.0, 4.0, left_wall_position, left_wall_material);
+function make_picture(position, picture, frame){
+	make_wall(0.02, 7.5, 5.0, position, picture);
+	var frame_position = position;
+	frame_position.x -= 0.1;
+	make_wall(0.05, 8.0, 5.5, frame_position, frame)
+}
+
+// Adds walls and pictures
+var left_wall_material = new THREE.MeshBasicMaterial({color: 0xffffff});
+var left_wall_position = new THREE.Vector3(-10.0, -5.0, 0.0);
+make_wall(0.2, 20.0, 100.0, left_wall_position, left_wall_material);
+
+var floor_material = new THREE.MeshBasicMaterial({color: 0xf0f0f0})
+var floor_postion = new THREE.Vector3(0, -5, 0);
+make_wall(50.0, 0.1, 100.0, floor_postion, floor_material);
+
+var gold_frame = new THREE.MeshBasicMaterial({color:0xffd700});
+var silver_frame = new THREE.MeshBasicMaterial({color:0xC0C0C0});
+var red_frame = new THREE.MeshBasicMaterial({color:0xff0000});
+var blue_frame = new THREE.MeshBasicMaterial({color:0x0000ff});
+
+var figures_texture = new THREE.TextureLoader().load('art/figures.jpg');
+var figures_material = new THREE.MeshBasicMaterial({map:figures_texture});
+var figures_position = new THREE.Vector3(-9.8, 0, 0);
+
+make_picture(figures_position, figures_material, gold_frame);
+
+var misunderstood_texture = new THREE.TextureLoader().load('art/misunderstood.jpg');
+var misunderstood_material = new THREE.MeshBasicMaterial({map:misunderstood_texture});
+var misunderstood_position = new THREE.Vector3(-9.8, 0, 7.5);
+
+make_picture(misunderstood_position, misunderstood_material, silver_frame);
 
 
-var left_wall = new Float32Array( [
-	 -2.0,  4.0,  2.0,
-	 -2.0, -4.0, -2.0,
-	 -2.0,  4.0, -2.0,
+var bach_texture = new THREE.TextureLoader().load('art/bach.jpg');
+var bach_material = new THREE.MeshBasicMaterial({map:bach_texture});
+var bach_position = new THREE.Vector3(-9.8, 0, 15.0);
 
-	 -2.0, -4.0,  2.0,
-	 -2.0,  4.0,  2.0,
-	 -2.0, -4.0, -2.0
-] );
+make_picture(bach_position, bach_material, red_frame);
 
+var needle_texture = new THREE.TextureLoader().load('art/needle.jpg');
+var needle_material = new THREE.MeshBasicMaterial({map:needle_texture});
+var needle_position = new THREE.Vector3(-9.8, 0, 22.5);
 
-var right_wall= new Float32Array( [
-	 2.0,  4.0,  2.0,
-	 2.0, -4.0, -2.0,
-	 2.0,  4.0, -2.0,
-
-	 2.0, -4.0,  2.0,
-	 2.0,  4.0,  2.0,
-	 2.0, -4.0, -2.0
-] );
-
-
-
-
-
-
-
-var back_wall = new Float32Array( [
-	 3.0,  5.0,  -6.0,
-	 3.0, -5.0, -6.0,
-	-3.0,  5.0, -6.0,
-
-	-3.0, 5.0,  -6.0,
-	-3.0, -5.0,  -6.0,
-	 3.0, -5.0, -6.0
-] );
-
-
-console.log("right_wall")
-add_plane(right_wall);
-//console.log("left_wall")
-//add_plane(left_wall);
-console.log("back_wall")
-add_plane(back_wall);
-
+make_picture(needle_position, needle_material, blue_frame);
 
 
 
