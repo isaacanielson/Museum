@@ -1,3 +1,9 @@
+// Museum by Isaac Nielson
+// Featuring works by Austin Overmoe
+// THREE.js
+// Floor texture from: www.textures4photoshop.com
+
+
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
@@ -9,6 +15,7 @@ document.body.appendChild( renderer.domElement );
 var x_axis = new THREE.Vector3(1, 0, 0);
 var y_axis = new THREE.Vector3(0, 1, 0);
 var z_axis = new THREE.Vector3(0, 0, 1);
+var upVec = new THREE.Vector3(0, 1, 0);
 
 
 
@@ -26,16 +33,15 @@ function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 	var wall_geometry = new THREE.BufferGeometry();
 
 
-	console.log("Vertices")
+	//console.log("Vertices")
 	console.log(vertices);
-	wall_geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+	//wall_geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
 
 	var wall_material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide});
 	//var texture = new THREE.TextureLoader().load('art/figures.jpg');
 	//var wall_material = new THREE.MeshBasicMaterial({map:texture, side: THREE.DoubleSide});
 
 	var plane = new THREE.Mesh(wall_geometry, wall_material);
-//console.log(plane.vertices)
 	scene.add(plane)
 
 }
@@ -44,7 +50,7 @@ function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 
 // Makes a box with given w,h,d,pos,and material
 function make_wall(width, height, depth, position, material){
-	wall = new THREE.BoxGeometry(width, height, depth);	
+	wall = new THREE.BoxGeometry(width, height, depth, 100, 100);	
 	var new_wall = new THREE.Mesh(wall, material);
 
 	new_wall.translateOnAxis(x_axis, position.x);
@@ -66,14 +72,21 @@ var left_wall_material = new THREE.MeshBasicMaterial({color: 0xffffff});
 var left_wall_position = new THREE.Vector3(-10.0, -5.0, 0.0);
 make_wall(0.2, 20.0, 100.0, left_wall_position, left_wall_material);
 
-var floor_material = new THREE.MeshBasicMaterial({color: 0xf0f0f0})
-var floor_postion = new THREE.Vector3(0, -5, 0);
-make_wall(50.0, 0.1, 100.0, floor_postion, floor_material);
+
+var floor_texture = new THREE.TextureLoader().load('art/floor.jpg');
+floor_texture.wrapS = THREE.MirroredRepeatWrapping;
+floor_texture.wrapT = THREE.MirroredRepeatWrapping;
+texture.repeat.set(25,25);
+var floor_material = new THREE.MeshBasicMaterial({map:floor_texture});
+var floor_position = new THREE.Vector3(0, -5, 0);
+make_wall(50.0, 0.1, 100.0, floor_position, floor_material);
+
 
 var gold_frame = new THREE.MeshBasicMaterial({color:0xffd700});
 var silver_frame = new THREE.MeshBasicMaterial({color:0xC0C0C0});
 var red_frame = new THREE.MeshBasicMaterial({color:0xff0000});
 var blue_frame = new THREE.MeshBasicMaterial({color:0x0000ff});
+var black_frame = new THREE.MeshBasicMaterial({color:0x000000});
 
 var figures_texture = new THREE.TextureLoader().load('art/figures.jpg');
 var figures_material = new THREE.MeshBasicMaterial({map:figures_texture});
@@ -85,14 +98,20 @@ var misunderstood_texture = new THREE.TextureLoader().load('art/misunderstood.jp
 var misunderstood_material = new THREE.MeshBasicMaterial({map:misunderstood_texture});
 var misunderstood_position = new THREE.Vector3(-9.8, 0, 7.5);
 
-make_picture(misunderstood_position, misunderstood_material, silver_frame);
+make_picture(misunderstood_position, misunderstood_material, black_frame);
+
+var mushroom_texture = new THREE.TextureLoader().load('art/mushroom.jpg');
+var mushroom_material = new THREE.MeshBasicMaterial({map:mushroom_texture});
+var mushroom_position = new THREE.Vector3(-9.8, 0, -10.0);
+
+make_picture(mushroom_position, mushroom_material, black_frame);
 
 
 var bach_texture = new THREE.TextureLoader().load('art/bach.jpg');
 var bach_material = new THREE.MeshBasicMaterial({map:bach_texture});
 var bach_position = new THREE.Vector3(-9.8, 0, 15.0);
 
-make_picture(bach_position, bach_material, red_frame);
+make_picture(bach_position, bach_material, silver_frame);
 
 var needle_texture = new THREE.TextureLoader().load('art/needle.jpg');
 var needle_material = new THREE.MeshBasicMaterial({map:needle_texture});
@@ -102,38 +121,106 @@ make_picture(needle_position, needle_material, blue_frame);
 
 
 
+// Ceiling effect
+ceiling_hedrons = [];
+for (i = 0; i < 10; i++){
+	for (j = 0; j < 10; j++){
+		var hedron_geometry = new THREE.TetrahedronGeometry(1 + i%2, i%2);
+
+		var hedron_material = new THREE.MeshBasicMaterial(0x00ff);
+
+		var new_hedron = new THREE.Mesh(hedron_geometry, hedron_material);
+
+		var hedron_position = new THREE.Vector3(-50 + i*10, 20, -50 + j*10);
+
+		//console.log(hedron_position);
+
+		new_hedron.translateOnAxis(x_axis, hedron_position.x);
+		new_hedron.translateOnAxis(y_axis, hedron_position.y);
+		new_hedron.translateOnAxis(z_axis, hedron_position.z);
+
+
+		ceiling_hedrons.push(new_hedron);
+		//console.log(ceiling_hedrons.length);
+		scene.add(ceiling_hedrons[i*10 + j]);
+	}
+}
+
+
+// Archway
+archway_rings = [];
+for (i = 0; i < 25; i++){
+	var ring_geometry = new THREE.RingGeometry(6, 15, 8);
+	var ring_color = new THREE.Color(0 + i * 1.0/25.0, 0 + i * 1.0/25.0, 0 + i * 1.0/50.0);
+	var ring_material = new THREE.MeshBasicMaterial({color:ring_color, side: THREE.DoubleSide});
+	var ring = new THREE.Mesh(ring_geometry, ring_material);
+
+
+	var ring_position = new THREE.Vector3(10 + i * 2, 2, 10);
+
+	console.log(ring_position);
+	ring.translateOnAxis(x_axis, ring_position.x);
+	ring.translateOnAxis(y_axis, ring_position.y);
+	ring.translateOnAxis(z_axis, ring_position.z);
+	ring.rotateOnAxis(y_axis, Math.PI/2);
+	archway_rings.push(ring);
+	scene.add(archway_rings[i]);
+
+}
+
+
+//Dome
+/*var dome_points = [];
+for ( var i = 0; i < 10; i ++ ) {
+	dome_points.push( new THREE.Vector3( Math.sin( i * 0.2 ) * 10 + 5, ( i - 5 ) * 2 ), Math.sin(i * 0.2) );
+}
+var dome_geometry = new THREE.LatheBufferGeometry( dome_points, 12);
+var dome_material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+var dome = new THREE.Mesh( geometry, material );
+scene.add( dome );
+*/
+
+
+
 camera.position.z = 5;
+time = 0.0;
 
 function animate() {
 	requestAnimationFrame( animate );
 	renderer.render( scene, camera );
+	//console.log(ceiling_hedrons[0].material.color);
+	for (var i = ceiling_hedrons.length - 1; i >= 0; i--) {
+		ceiling_hedrons[i].rotation.x += 0.01;
+		ceiling_hedrons[i].rotation.y += 0.01;
+		var red = Math.sin(time*i*0.1);
+		var green = Math.cos(time*i*0.1);
+		var blue = Math.sin(time*i*0.1);
+		var color = new THREE.Color(red, green, blue);
+		ceiling_hedrons[i].material.color = color;
+	}
+	//figures_position.z += 0.01
 	//cube.rotation.x += 0.01;
 	//cube.rotation.y += 0.01;
+
+	time += 0.01
+
 }
 
 
-
-window.addEventListener('mousemove', function(e){
-	//console.log("Mouse moved");
-	//console.log(event.x);
-});
-
-
-
 window.addEventListener('keypress', function(e){
-	console.log("key Pressed");
+	//console.log("key Pressed");
 	var pressed_key = event.key;
-	console.log(event.key);
-	var target = THREE.Vector3();
+	//console.log(event.key);
+	var target = new THREE.Vector3();
 	var lookVec = camera.getWorldDirection(target);
-	var upVec = THREE.Vector3(0, 1, 0);
+
 
 	rotate_left = new THREE.Euler(0, Math.PI/2, 0, 'XYZ');
 	rotate_right = new THREE.Euler(0, -Math.PI/2, 0, 'XYZ');
 	var left_movement;
 	var right_movement;
 
-	console.log(lookVec);
+	//console.log(lookVec);
 	switch(pressed_key){
 		case 's':
 			camera.position.x -= lookVec.x;
@@ -162,8 +249,8 @@ window.addEventListener('keypress', function(e){
 });
 
 window.addEventListener('mousemove', function(e){
-	var horizontal_rot = event.movementX * -0.02;
-	var vertical_rot = event.movementY * -0.02;
+	var horizontal_rot = event.movementX * -0.005;
+	var vertical_rot = event.movementY * -0.005;
 
 	// Horizontal rotation about up vector
 	camera.rotateOnAxis(y_axis, horizontal_rot);
