@@ -34,7 +34,7 @@ function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 
 
 	//console.log("Vertices")
-	console.log(vertices);
+	//console.log(vertices);
 	//wall_geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
 
 	var wall_material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide});
@@ -68,7 +68,7 @@ function make_picture(position, picture, frame){
 }
 
 // Adds walls and pictures
-var left_wall_material = new THREE.MeshBasicMaterial({color: 0xffffff});
+var left_wall_material = new THREE.MeshBasicMaterial({color: 0xf0ead6});
 var left_wall_position = new THREE.Vector3(-10.0, -5.0, 0.0);
 make_wall(0.2, 20.0, 100.0, left_wall_position, left_wall_material);
 
@@ -170,15 +170,24 @@ for (i = 0; i < 25; i++){
 
 
 //Dome
-/*var dome_points = [];
+
+var points = [];
 for ( var i = 0; i < 10; i ++ ) {
-	dome_points.push( new THREE.Vector3( Math.sin( i * 0.2 ) * 10 + 5, ( i - 5 ) * 2 ), Math.sin(i * 0.2) );
+	points.push( new THREE.Vector2( Math.sin( i * 0.2 ) * 10 + 5, ( i - 5 ) * 2 ) );
 }
-var dome_geometry = new THREE.LatheBufferGeometry( dome_points, 12);
-var dome_material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
-var dome = new THREE.Mesh( geometry, material );
-scene.add( dome );
-*/
+var geometry = new THREE.LatheGeometry( points );
+var material = new THREE.MeshBasicMaterial( { color: 0x808080 } );
+var lathe = new THREE.Mesh( geometry, material );
+
+lathe.translateOnAxis(x_axis, 100);
+lathe.translateOnAxis(z_axis, 10);
+lathe.translateOnAxis(y_axis, 30);
+lathe.rotateOnAxis(x_axis, Math.PI);
+lathe.side = THREE.DoubleSide;
+//lathe.rotation.y += Math.PI;
+
+scene.add( lathe );
+
 
 
 
@@ -187,16 +196,35 @@ time = 0.0;
 
 function animate() {
 	requestAnimationFrame( animate );
+	//console.log("In animate");
 	renderer.render( scene, camera );
 	//console.log(ceiling_hedrons[0].material.color);
 	for (var i = ceiling_hedrons.length - 1; i >= 0; i--) {
-		ceiling_hedrons[i].rotation.x += 0.01;
-		ceiling_hedrons[i].rotation.y += 0.01;
+		ceiling_hedrons[i].rotateOnAxis(x_axis, 0.01);
+		ceiling_hedrons[i].rotateOnAxis(y_axis, 0.01);
 		var red = Math.sin(time*i*0.1);
 		var green = Math.cos(time*i*0.1);
 		var blue = Math.sin(time*i*0.1);
 		var color = new THREE.Color(red, green, blue);
 		ceiling_hedrons[i].material.color = color;
+	}
+
+	for (j = archway_rings.length - 1; j >= 0; j--){
+		//archway_rings[j].rotateOnWorldAxis(z_axis, 0.01 * time);
+		//archway_rings[j].rotateOnWorldAxis(y_axis, 0.01 * time);
+		//archway_rings[j].rotateOnWorldAxis(x_axis, 0.01 * time);
+		//console.log("Rotated archway_rings");
+		//console.log(archway_rings[j]);
+	
+		//archway_rings[j].rotation.y += 0.01;
+		if (j %2 == 0){
+			archway_rings[j].rotation.z += 0.01;
+		}
+		else{
+			archway_rings[j].rotation.z -= 0.01;
+		}
+
+
 	}
 	//figures_position.z += 0.01
 	//cube.rotation.x += 0.01;
@@ -212,7 +240,7 @@ window.addEventListener('keypress', function(e){
 	var pressed_key = event.key;
 	//console.log(event.key);
 	var target = new THREE.Vector3();
-	var lookVec = camera.getWorldDirection(target);
+	var lookVec = camera.getWorldDirection(target);     
 
 
 	rotate_left = new THREE.Euler(0, Math.PI/2, 0, 'XYZ');
@@ -259,4 +287,5 @@ window.addEventListener('mousemove', function(e){
 	camera.rotateOnAxis(x_axis, vertical_rot);
 });
 
+console.log("Start");
 animate();
