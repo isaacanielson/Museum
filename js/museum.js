@@ -7,7 +7,8 @@
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
-var renderer = new THREE.WebGLRenderer();
+var renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.shadowMap.enabled = true;
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
@@ -17,13 +18,15 @@ var y_axis = new THREE.Vector3(0, 1, 0);
 var z_axis = new THREE.Vector3(0, 0, 1);
 var upVec = new THREE.Vector3(0, 1, 0);
 
+rotate_left = new THREE.Euler(0, Math.PI/2, 0, 'XYZ');
+rotate_right = new THREE.Euler(0, -Math.PI/2, 0, 'XYZ');
 
 
-var geometry = new THREE.BoxGeometry();
+//var geometry = new THREE.BoxGeometry();
 //var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-var texture = new THREE.TextureLoader().load('art/figures.jpg');
-var material = new THREE.MeshBasicMaterial({map:texture});
-var cube = new THREE.Mesh( geometry, material );
+//var texture = new THREE.TextureLoader().load('art/figures.jpg');
+//var material = new THREE.MeshBasicMaterial({map:texture});
+//var cube = new THREE.Mesh( geometry, material );
 //scene.add( cube );
 
 var wall_color = 0xffffff;
@@ -32,14 +35,7 @@ var wall_color = 0xffffff;
 function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 	var wall_geometry = new THREE.BufferGeometry();
 
-
-	//console.log("Vertices")
-	//console.log(vertices);
-	//wall_geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-
 	var wall_material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide});
-	//var texture = new THREE.TextureLoader().load('art/figures.jpg');
-	//var wall_material = new THREE.MeshBasicMaterial({map:texture, side: THREE.DoubleSide});
 
 	var plane = new THREE.Mesh(wall_geometry, wall_material);
 	scene.add(plane)
@@ -60,11 +56,14 @@ function make_wall(width, height, depth, position, material){
 	scene.add(new_wall);
 }
 
-function make_picture(position, picture, frame){
-	make_wall(0.02, 7.5, 5.0, position, picture);
+function make_picture(position, picture, frame, aspect_ratio){
+
+	height = 7.5;
+	width = height * aspect_ratio;
+	make_wall(0.02, height, width, position, picture);
 	var frame_position = position;
 	frame_position.x -= 0.1;
-	make_wall(0.05, 8.0, 5.5, frame_position, frame)
+	make_wall(0.05, height + 0.5, width + 0.5, frame_position, frame)
 }
 
 // Adds walls and pictures
@@ -76,7 +75,7 @@ make_wall(0.2, 20.0, 100.0, left_wall_position, left_wall_material);
 var floor_texture = new THREE.TextureLoader().load('art/floor.jpg');
 floor_texture.wrapS = THREE.MirroredRepeatWrapping;
 floor_texture.wrapT = THREE.MirroredRepeatWrapping;
-texture.repeat.set(25,25);
+floor_texture.repeat.set(25,25);
 var floor_material = new THREE.MeshBasicMaterial({map:floor_texture});
 var floor_position = new THREE.Vector3(0, -5, 0);
 make_wall(50.0, 0.1, 100.0, floor_position, floor_material);
@@ -88,18 +87,61 @@ var red_frame = new THREE.MeshBasicMaterial({color:0xff0000});
 var blue_frame = new THREE.MeshBasicMaterial({color:0x0000ff});
 var black_frame = new THREE.MeshBasicMaterial({color:0x000000});
 
-var figures_texture = new THREE.TextureLoader().load('art/figures.jpg');
-var figures_material = new THREE.MeshBasicMaterial({map:figures_texture});
-var figures_position = new THREE.Vector3(-9.8, 0, 0);
 
-make_picture(figures_position, figures_material, gold_frame);
+var figures_img = new Image();
+figures_width = 0;
+figures_height = 0;
+figures_img.onload = function(){
+	figures_width = this.width;
+	figures_height = this.height;
+	aspect_ratio = figures_width/figures_height;
+	var figures_texture = new THREE.TextureLoader().load('art/figures.jpg');
 
-var misunderstood_texture = new THREE.TextureLoader().load('art/misunderstood.jpg');
+	var figures_material = new THREE.MeshBasicMaterial({map:figures_texture});
+	var figures_position = new THREE.Vector3(-9.8, 0, 0);
+	make_picture(figures_position, figures_material, gold_frame, aspect_ratio);
+}
+figures_img.src = 'art/figures.jpg';
+/*
+var picture = {
+	source: 'art/misunderstood.jpg';
+	position: new THREE.Vector3(-9.8, 0, 7.5);
+	load_picture :
+}
+
+function load_picture(){
+	width = this.width;
+	height = this.height;
+	aspect_ratio = width/height;
+	var texture = new THREE.TextureLoader().load(this.src);
+
+	var material = new THREE.MeshBasicMaterial({map:texture});
+	var position = new THREE.Vector3(-9.8, 0, 7.5);
+	make_picture(position, material, black_frame, aspect_ratio);
+}
+*/
+var misunderstood_img = new Image();
+misunderstood_width = 0;
+misunderstood_height = 0;
+misunderstood_img.onload = function(){
+	misunderstood_width = this.width;
+	misunderstood_height = this.height;
+	aspect_ratio = misunderstood_width/misunderstood_height;
+	var misunderstood_texture = new THREE.TextureLoader().load('art/misunderstood.jpg');
+
+	var misunderstood_material = new THREE.MeshBasicMaterial({map:misunderstood_texture});
+	var misunderstood_position = new THREE.Vector3(-9.8, 0, 7.5);
+	make_picture(misunderstood_position, misunderstood_material, black_frame, aspect_ratio);
+}
+misunderstood_img.src = 'art/misunderstood.jpg';
+
+/*ar misunderstood_texture = new THREE.TextureLoader().load('art/misunderstood.jpg');
 var misunderstood_material = new THREE.MeshBasicMaterial({map:misunderstood_texture});
 var misunderstood_position = new THREE.Vector3(-9.8, 0, 7.5);
 
-make_picture(misunderstood_position, misunderstood_material, black_frame);
-
+make_picture(misunderstood_position, misunderstood_material, black_frame, 1);
+*/
+/*
 var mushroom_texture = new THREE.TextureLoader().load('art/mushroom.jpg');
 var mushroom_material = new THREE.MeshBasicMaterial({map:mushroom_texture});
 var mushroom_position = new THREE.Vector3(-9.8, 0, -10.0);
@@ -118,7 +160,7 @@ var needle_material = new THREE.MeshBasicMaterial({map:needle_texture});
 var needle_position = new THREE.Vector3(-9.8, 0, 22.5);
 
 make_picture(needle_position, needle_material, blue_frame);
-
+*/
 
 
 // Ceiling effect
@@ -133,15 +175,11 @@ for (i = 0; i < 10; i++){
 
 		var hedron_position = new THREE.Vector3(-50 + i*10, 20, -50 + j*10);
 
-		//console.log(hedron_position);
-
 		new_hedron.translateOnAxis(x_axis, hedron_position.x);
 		new_hedron.translateOnAxis(y_axis, hedron_position.y);
 		new_hedron.translateOnAxis(z_axis, hedron_position.z);
 
-
 		ceiling_hedrons.push(new_hedron);
-		//console.log(ceiling_hedrons.length);
 		scene.add(ceiling_hedrons[i*10 + j]);
 	}
 }
@@ -158,7 +196,6 @@ for (i = 0; i < 25; i++){
 
 	var ring_position = new THREE.Vector3(10 + i * 2, 2, 10);
 
-	console.log(ring_position);
 	ring.translateOnAxis(x_axis, ring_position.x);
 	ring.translateOnAxis(y_axis, ring_position.y);
 	ring.translateOnAxis(z_axis, ring_position.z);
@@ -169,8 +206,7 @@ for (i = 0; i < 25; i++){
 }
 
 
-//Dome
-
+//Dome (Currently only one-sided)
 var points = [];
 for ( var i = 0; i < 10; i ++ ) {
 	points.push( new THREE.Vector2( Math.sin( i * 0.2 ) * 10 + 5, ( i - 5 ) * 2 ) );
@@ -184,9 +220,25 @@ lathe.translateOnAxis(z_axis, 10);
 lathe.translateOnAxis(y_axis, 30);
 lathe.rotateOnAxis(x_axis, Math.PI);
 lathe.side = THREE.DoubleSide;
-//lathe.rotation.y += Math.PI;
+
 
 scene.add( lathe );
+
+//Lighting
+/*
+var sphere = new THREE.SphereBufferGeometry(0.5, 16, 8);
+
+var light = new THREE.PointLight(0xff0000, 1, 100);
+light.add(new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({color:0xff0000})));
+light.position.set(0, 2, 0);
+light.castShadow = true;
+light.shadow.mapSize.width = 512;
+light.shadow.mapSize.height = 512;
+light.shadow.camera.near = 0.5;
+light.shadow.camera.far = 500;
+scene.add(light);
+*/
+
 
 
 
@@ -196,9 +248,7 @@ time = 0.0;
 
 function animate() {
 	requestAnimationFrame( animate );
-	//console.log("In animate");
 	renderer.render( scene, camera );
-	//console.log(ceiling_hedrons[0].material.color);
 	for (var i = ceiling_hedrons.length - 1; i >= 0; i--) {
 		ceiling_hedrons[i].rotateOnAxis(x_axis, 0.01);
 		ceiling_hedrons[i].rotateOnAxis(y_axis, 0.01);
@@ -210,13 +260,6 @@ function animate() {
 	}
 
 	for (j = archway_rings.length - 1; j >= 0; j--){
-		//archway_rings[j].rotateOnWorldAxis(z_axis, 0.01 * time);
-		//archway_rings[j].rotateOnWorldAxis(y_axis, 0.01 * time);
-		//archway_rings[j].rotateOnWorldAxis(x_axis, 0.01 * time);
-		//console.log("Rotated archway_rings");
-		//console.log(archway_rings[j]);
-	
-		//archway_rings[j].rotation.y += 0.01;
 		if (j %2 == 0){
 			archway_rings[j].rotation.z += 0.01;
 		}
@@ -226,55 +269,94 @@ function animate() {
 
 
 	}
-	//figures_position.z += 0.01
-	//cube.rotation.x += 0.01;
-	//cube.rotation.y += 0.01;
 
 	time += 0.01
 
 }
 
 
+var w_pressed = false
+var a_pressed = false
+var s_pressed = false
+var d_pressed = false
+
+
+function move_forward(){
+	var target = new THREE.Vector3();
+	var lookVec = camera.getWorldDirection(target);  
+	camera.position.x += lookVec.x;
+	//camera.position.y += lookVec.y;
+	camera.position.z += lookVec.z;
+}
+
+function move_backward(){
+	var target = new THREE.Vector3();
+	var lookVec = camera.getWorldDirection(target);  
+	camera.position.x -= lookVec.x;
+	//camera.position.y -= lookVec.y;
+	camera.position.z -= lookVec.z;	
+}
+
+function move_left(){
+	var target = new THREE.Vector3();
+	var lookVec = camera.getWorldDirection(target);  
+	left_movement = lookVec.applyEuler(rotate_left);
+	camera.position.x += left_movement.x;
+	//camera.position.y += left_movement.y;
+	camera.position.z += left_movement.z;
+}
+
+function move_right(){
+	var target = new THREE.Vector3();
+	var lookVec = camera.getWorldDirection(target);  
+	right_movement = lookVec.applyEuler(rotate_right);
+	camera.position.x += right_movement.x;
+	//camera.position.y += left_movement.y;
+	camera.position.z += right_movement.z;
+}
 window.addEventListener('keypress', function(e){
 	//console.log("key Pressed");
 	var pressed_key = event.key;
 	//console.log(event.key);
-	var target = new THREE.Vector3();
-	var lookVec = camera.getWorldDirection(target);     
 
-
-	rotate_left = new THREE.Euler(0, Math.PI/2, 0, 'XYZ');
-	rotate_right = new THREE.Euler(0, -Math.PI/2, 0, 'XYZ');
-	var left_movement;
-	var right_movement;
+  
 
 	//console.log(lookVec);
 	switch(pressed_key){
 		case 's':
-			camera.position.x -= lookVec.x;
-			//camera.position.y -= lookVec.y;
-			camera.position.z -= lookVec.z;	
+			s_pressed = true;
+			move_backward();
 			break;
 		case 'w':
-			camera.position.x += lookVec.x;
-			//camera.position.y += lookVec.y;
-			camera.position.z += lookVec.z;
+			w_pressed = true;
+			move_forward();
 			break;
 		case 'a':
-			left_movement = lookVec.applyEuler(rotate_left);
-			camera.position.x += left_movement.x;
-			//camera.position.y += left_movement.y;
-			camera.position.z += left_movement.z;
+			a_pressed = true;
+			move_left();
 			break;
 		case 'd':
-			left_movement = lookVec.applyEuler(rotate_right);
-			camera.position.x += left_movement.x;
-			//camera.position.y += left_movement.y;
-			camera.position.z += left_movement.z;
+			d_pressed = true;
+			move_right();
 			break;
 	}
 	//console.log(event.x);
 });
+
+window.addEventListener('keyup', function(e){
+	var pressed_key = event.key;
+	switch (pressed_key){
+		case 's':
+			s_pressed = false;
+		case 'w':
+			w_pressed = false;
+		case 'a':
+			a_pressed = false;
+		case 'd':
+			d_pressed = false;
+
+	}
+})
 
 window.addEventListener('mousemove', function(e){
 	var horizontal_rot = event.movementX * -0.005;
@@ -286,6 +368,7 @@ window.addEventListener('mousemove', function(e){
 	// Vertical rotation about side vector
 	camera.rotateOnAxis(x_axis, vertical_rot);
 });
+
 
 console.log("Start");
 animate();
