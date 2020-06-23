@@ -2,6 +2,7 @@
 // Featuring works by Austin Overmoe
 // THREE.js
 // Floor texture from: www.textures4photoshop.com
+// Gold Plate from: https://officialpsds.com/gold-plate-psd-724n5j
 
 
 var scene = new THREE.Scene();
@@ -45,6 +46,7 @@ function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 
 
 // Makes a box with given w,h,d,pos,and material
+// Position is center of wall
 function make_wall(width, height, depth, position, material){
 	wall = new THREE.BoxGeometry(width, height, depth, 100, 100);	
 	var new_wall = new THREE.Mesh(wall, material);
@@ -56,21 +58,66 @@ function make_wall(width, height, depth, position, material){
 	scene.add(new_wall);
 }
 
-function make_picture(position, picture, frame, aspect_ratio){
+function make_picture(position, picture, frame, aspect_ratio, orientation){
 
 	height = 7.5;
 	width = height * aspect_ratio;
-	make_wall(0.02, height, width, position, picture);
 	var frame_position = position;
-	frame_position.x -= 0.1;
-	make_wall(0.05, height + 0.5, width + 0.5, frame_position, frame)
+	if (orientation == "x+"){
+		make_wall(0.02, height, width, position, picture);
+		frame_position.x -= 0.1;
+		make_wall(0.05, height + 0.5, width + 0.5, frame_position, frame)
+	}
+	else if (orientation == "x-"){
+		make_wall(0.02, height, width, position, picture);
+		frame_position.x += 0.1;
+		make_wall(0.05, height + 0.5, width + 0.5, frame_position, frame)
+	}
+	else if (orientation == "z+"){
+		make_wall(width, height, 0.02, position, picture);
+		frame_position.z -= 0.1;
+		make_wall(width + 0.5, height + 0.5, 0.05, frame_position, frame);
+	}
+	else if (orientation == "z-"){
+		make_wall(width, height, 0.02, position, picture);
+		frame_position.z += 0.1;
+		make_wall(width + 0.5, height + 0.5, 0.05, frame_position, frame);
+	}
+}
+
+function load_picture(src, position, frame, orientation){
+	var new_img = new Image();
+	new_img.onload = function(){
+		width = this.width;
+		height = this.height;
+		aspect_ratio = width/height;
+		var texture = new THREE.TextureLoader().load(this.src);
+
+		var material = new THREE.MeshBasicMaterial({map:texture});
+		//var position = new THREE.Vector3(-9.8, 0, 7.5);
+		make_picture(position, material, frame, aspect_ratio, orientation);
+	}
+	new_img.src = src;
 }
 
 // Adds walls and pictures
+var wall_y = 5.0;
+
 var left_wall_material = new THREE.MeshBasicMaterial({color: 0xf0ead6});
-var left_wall_position = new THREE.Vector3(-10.0, -5.0, 0.0);
+var left_wall_position = new THREE.Vector3(-10.0, wall_y, 0.0);
 make_wall(0.2, 20.0, 100.0, left_wall_position, left_wall_material);
 
+var front_wall_position = new THREE.Vector3(0.0, wall_y, -50);
+make_wall(50.0, 20.0, 0.2, front_wall_position, left_wall_material);
+
+var right_wall_position = new THREE.Vector3(25.0, wall_y, -25.0);
+make_wall(0.2, 20.0, 50.0, right_wall_position, left_wall_material);
+
+var right_wall_position2 = new THREE.Vector3(25.0, wall_y, 35.0);
+make_wall(.02, 20.0, 30.0, right_wall_position2, left_wall_material);
+
+var back_wall_position = new THREE.Vector3(0, wall_y, 50.0);
+make_wall(50.0, 20.0, 0.2, back_wall_position, left_wall_material)
 
 var floor_texture = new THREE.TextureLoader().load('art/floor.jpg');
 floor_texture.wrapS = THREE.MirroredRepeatWrapping;
@@ -88,79 +135,75 @@ var blue_frame = new THREE.MeshBasicMaterial({color:0x0000ff});
 var black_frame = new THREE.MeshBasicMaterial({color:0x000000});
 
 
-var figures_img = new Image();
-figures_width = 0;
-figures_height = 0;
-figures_img.onload = function(){
-	figures_width = this.width;
-	figures_height = this.height;
-	aspect_ratio = figures_width/figures_height;
-	var figures_texture = new THREE.TextureLoader().load('art/figures.jpg');
 
-	var figures_material = new THREE.MeshBasicMaterial({map:figures_texture});
-	var figures_position = new THREE.Vector3(-9.8, 0, 0);
-	make_picture(figures_position, figures_material, gold_frame, aspect_ratio);
-}
-figures_img.src = 'art/figures.jpg';
+var figures_position = new THREE.Vector3(-9.8, 3, 0);
+load_picture('art/figures.jpg', figures_position, gold_frame, "x+");
+
+var m_position = new THREE.Vector3(-9.8, 3, 7.5);
+load_picture('art/misunderstood.jpg', m_position, black_frame, "x+");
+
+var mushroom_position = new THREE.Vector3(-9.8, 3, -7.5);
+load_picture('art/mushroom.jpg', mushroom_position, black_frame, "x+");
+
+var needle_position = new THREE.Vector3(-9.8, 3, 15);
+load_picture('art/needle.jpg', needle_position, blue_frame, "x+");
+
+var slouched_position = new THREE.Vector3(-9.8, 3, -15);
+load_picture('art/slouched.jpg', slouched_position, red_frame, "x+");
+
+var mask_position = new THREE.Vector3(0, 3, -49.8);
+load_picture('art/mask.jpg', mask_position, black_frame, "z+");
+
+var anatomy_position = new THREE.Vector3(15.0, 3, -49.8);
+load_picture('art/anatomy.jpg', anatomy_position, black_frame, "z+");
+
+var nude_position = new THREE.Vector3(24.8, 3, -30.0);
+load_picture('art/nude.jpg', nude_position, black_frame, "x-");
+
+var comic_position = new THREE.Vector3(0.0, 3, 49.8);
+load_picture('art/comic.jpg', comic_position, black_frame, "z-");
+
+var plate_position = new THREE.Vector3(-9.7, -3, 0);
+var plate_texture = new THREE.TextureLoader().load('resources/gold_plate.png');
+var plate_material = new THREE.MeshBasicMaterial({map:plate_texture});
+make_wall(0.05, 1, 2, plate_position, plate_material);
+
+
 /*
-var picture = {
-	source: 'art/misunderstood.jpg';
-	position: new THREE.Vector3(-9.8, 0, 7.5);
-	load_picture :
-}
-
-function load_picture(){
-	width = this.width;
-	height = this.height;
-	aspect_ratio = width/height;
-	var texture = new THREE.TextureLoader().load(this.src);
-
-	var material = new THREE.MeshBasicMaterial({map:texture});
-	var position = new THREE.Vector3(-9.8, 0, 7.5);
-	make_picture(position, material, black_frame, aspect_ratio);
-}
+var font_loader = new THREE.FontLoader();
+var test_font = font_loader.load('fonts/ComicSansMedium.json', 
+	//OnLoad Callback
+	function (font){
+		font_object = 
+		{
+			font: font,
+			size: 80,
+			height: 5,
+			curveSegments: 12,
+			bevelEnabled: true,
+			bevelThickness: 10,
+			bevelSize: 8,
+			bevelOffset: 0,
+			bevelSegments: 5
+		}
+		var text = new THREE.TextGeometry("Hello World!", {
+			font: font,
+			size: 80,
+			height: 5,
+			curveSegments: 12,
+			bevelEnabled: true,
+			bevelThickness: 10,
+			bevelSize: 8,
+			bevelOffset: 0,
+			bevelSegments: 5
+		});
+		//var text_geo = new THREE.Geometry().fromGeometry(text);
+		text.position = new THREE.Vector3(0, 0, 0);
+		console.log(text);
+		scene.add(text);
+	});
 */
-var misunderstood_img = new Image();
-misunderstood_width = 0;
-misunderstood_height = 0;
-misunderstood_img.onload = function(){
-	misunderstood_width = this.width;
-	misunderstood_height = this.height;
-	aspect_ratio = misunderstood_width/misunderstood_height;
-	var misunderstood_texture = new THREE.TextureLoader().load('art/misunderstood.jpg');
-
-	var misunderstood_material = new THREE.MeshBasicMaterial({map:misunderstood_texture});
-	var misunderstood_position = new THREE.Vector3(-9.8, 0, 7.5);
-	make_picture(misunderstood_position, misunderstood_material, black_frame, aspect_ratio);
-}
-misunderstood_img.src = 'art/misunderstood.jpg';
-
-/*ar misunderstood_texture = new THREE.TextureLoader().load('art/misunderstood.jpg');
-var misunderstood_material = new THREE.MeshBasicMaterial({map:misunderstood_texture});
-var misunderstood_position = new THREE.Vector3(-9.8, 0, 7.5);
-
-make_picture(misunderstood_position, misunderstood_material, black_frame, 1);
-*/
-/*
-var mushroom_texture = new THREE.TextureLoader().load('art/mushroom.jpg');
-var mushroom_material = new THREE.MeshBasicMaterial({map:mushroom_texture});
-var mushroom_position = new THREE.Vector3(-9.8, 0, -10.0);
-
-make_picture(mushroom_position, mushroom_material, black_frame);
-
-
-var bach_texture = new THREE.TextureLoader().load('art/bach.jpg');
-var bach_material = new THREE.MeshBasicMaterial({map:bach_texture});
-var bach_position = new THREE.Vector3(-9.8, 0, 15.0);
-
-make_picture(bach_position, bach_material, silver_frame);
-
-var needle_texture = new THREE.TextureLoader().load('art/needle.jpg');
-var needle_material = new THREE.MeshBasicMaterial({map:needle_texture});
-var needle_position = new THREE.Vector3(-9.8, 0, 22.5);
-
-make_picture(needle_position, needle_material, blue_frame);
-*/
+//scene.add(text);
 
 
 // Ceiling effect
@@ -194,7 +237,7 @@ for (i = 0; i < 25; i++){
 	var ring = new THREE.Mesh(ring_geometry, ring_material);
 
 
-	var ring_position = new THREE.Vector3(10 + i * 2, 2, 10);
+	var ring_position = new THREE.Vector3(30 + i * 2, 2, 10);
 
 	ring.translateOnAxis(x_axis, ring_position.x);
 	ring.translateOnAxis(y_axis, ring_position.y);
@@ -361,13 +404,35 @@ window.addEventListener('keyup', function(e){
 window.addEventListener('mousemove', function(e){
 	var horizontal_rot = event.movementX * -0.005;
 	var vertical_rot = event.movementY * -0.005;
+	var target = new THREE.Vector3();
+
+
 
 	// Horizontal rotation about up vector
 	camera.rotateOnAxis(y_axis, horizontal_rot);
 
 	// Vertical rotation about side vector
+	//camera.getWorldDirection(target);
+	//console.log("World direction:");
+	//console.log(target);
+	//target.cross(y_axis);
+
+	//console.log("Side vector");
+	//console.log(target);
+
 	camera.rotateOnAxis(x_axis, vertical_rot);
 });
+
+
+window.addEventListener('wheel', function(e){
+	var zoom_change = e.deltaY * -0.01;
+	camera.zoom += zoom_change;
+	if (camera.zoom < 1){
+		camera.zoom = 1;
+	}
+	camera.updateProjectionMatrix();
+})
+
 
 
 console.log("Start");
