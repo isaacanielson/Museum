@@ -19,6 +19,8 @@ var y_axis = new THREE.Vector3(0, 1, 0);
 var z_axis = new THREE.Vector3(0, 0, 1);
 var upVec = new THREE.Vector3(0, 1, 0);
 
+var pictures = [];
+
 rotate_left = new THREE.Euler(0, Math.PI/2, 0, 'XYZ');
 rotate_right = new THREE.Euler(0, -Math.PI/2, 0, 'XYZ');
 
@@ -56,6 +58,7 @@ function make_wall(width, height, depth, position, material){
 	new_wall.translateOnAxis(z_axis, position.z);
 
 	scene.add(new_wall);
+	return new_wall;
 }
 
 function make_picture(position, picture, frame, aspect_ratio, orientation){
@@ -63,26 +66,28 @@ function make_picture(position, picture, frame, aspect_ratio, orientation){
 	var height = 7.5;
 	var width = height * aspect_ratio;
 	var frame_position = position;
+	var to_return;
 	if (orientation == "x+"){
-		make_wall(0.02, height, width, position, picture);
+		to_return = make_wall(0.02, height, width, position, picture);
 		frame_position.x -= 0.1;
 		make_wall(0.05, height + 0.5, width + 0.5, frame_position, frame)
 	}
 	else if (orientation == "x-"){
-		make_wall(0.02, height, width, position, picture);
+		to_return = make_wall(0.02, height, width, position, picture);
 		frame_position.x += 0.1;
 		make_wall(0.05, height + 0.5, width + 0.5, frame_position, frame)
 	}
 	else if (orientation == "z+"){
-		make_wall(width, height, 0.02, position, picture);
+		to_return = make_wall(width, height, 0.02, position, picture);
 		frame_position.z -= 0.1;
 		make_wall(width + 0.5, height + 0.5, 0.05, frame_position, frame);
 	}
 	else if (orientation == "z-"){
-		make_wall(width, height, 0.02, position, picture);
+		to_return = make_wall(width, height, 0.02, position, picture);
 		frame_position.z += 0.1;
 		make_wall(width + 0.5, height + 0.5, 0.05, frame_position, frame);
 	}
+	return to_return;
 }
 
 function load_picture(src, position, frame, orientation){
@@ -95,9 +100,32 @@ function load_picture(src, position, frame, orientation){
 
 		var material = new THREE.MeshPhongMaterial({map:texture});
 		//var position = new THREE.Vector3(-9.8, 0, 7.5);
-		make_picture(position, material, frame, aspect_ratio, orientation);
+		var pic = make_picture(position, material, frame, aspect_ratio, orientation);
+		//console.log(pic);
+
+		var spotLight = new THREE.SpotLight(0xffffff, 1, 10, Math.PI/4);
+		if (orientation == "x+"){
+			spotLight.position.set(pic.position.x + 5, pic.position.y + 0, pic.position.z);
+		}
+		else if (orientation == "x-"){
+			spotLight.position.set(pic.position.x - 5, pic.position.y + 0, pic.position.z);
+		}
+		else if (orientation == "z+"){
+			spotLight.position.set(pic.position.x, pic.position.y + 0, pic.position.z + 5);
+		}
+		else if (orientation == "z-"){
+			spotLight.position.set(pic.position.x, pic.position.y + 0, pic.position.z - 5);
+		}
+
+		spotLight.target = pic;
+		console.log(spotLight.target);
+		spotLighthelper = new THREE.SpotLightHelper(spotLight);
+		scene.add(spotLight);
+		//scene.add(spotLighthelper);
+		
 	}
 	new_img.src = src;
+
 }
 
 // Adds walls and pictures
@@ -137,42 +165,42 @@ var black_frame = new THREE.MeshPhongMaterial({color:0x000000});
 
 
 var figures_position = new THREE.Vector3(-9.8, 3, 0);
-load_picture('art/figures.jpg', figures_position, gold_frame, "x+");
+var figures = load_picture('art/figures.jpg', figures_position, gold_frame, "x+");
 
 var misunderstood_position = new THREE.Vector3(-9.8, 3, 15.0);
-load_picture('art/misunderstood.jpg', misunderstood_position, black_frame, "x+");
+var misunderstood = load_picture('art/misunderstood.jpg', misunderstood_position, black_frame, "x+");
 
 var mushroom_position = new THREE.Vector3(-9.8, 3, -15.0);
-load_picture('art/mushroom.jpg', mushroom_position, black_frame, "x+");
+var mushroom = load_picture('art/mushroom.jpg', mushroom_position, black_frame, "x+");
 
 var needle_position = new THREE.Vector3(-9.8, 3, 30);
-load_picture('art/needle.jpg', needle_position, blue_frame, "x+");
+var needle = load_picture('art/needle.jpg', needle_position, blue_frame, "x+");
 
 var slouched_position = new THREE.Vector3(-9.8, 3, -30);
-load_picture('art/slouched.jpg', slouched_position, red_frame, "x+");
+var slouched = load_picture('art/slouched.jpg', slouched_position, red_frame, "x+");
 
 var mask_position = new THREE.Vector3(0, 3, -49.8);
-load_picture('art/mask.jpg', mask_position, black_frame, "z+");
+var mask = load_picture('art/mask.jpg', mask_position, black_frame, "z+");
 
 var anatomy_position = new THREE.Vector3(15.0, 3, -49.8);
-load_picture('art/anatomy.jpg', anatomy_position, black_frame, "z+");
+var anatomy = load_picture('art/anatomy.jpg', anatomy_position, black_frame, "z+");
 
 var nude_position = new THREE.Vector3(24.8, 3, -30.0);
-load_picture('art/nude.jpg', nude_position, black_frame, "x-");
+var nude = load_picture('art/nude.jpg', nude_position, black_frame, "x-");
 
 var stretch_position = new THREE.Vector3(24.8, 3, -15.0);
-load_picture('art/stretch.jpg', stretch_position, black_frame, "x-");
+var stretch = load_picture('art/stretch.jpg', stretch_position, black_frame, "x-");
 
 var bach_position = new THREE.Vector3(24.8, 3, 35.0);
-load_picture('art/bach.jpg', bach_position, black_frame, "x-");
+var bach = load_picture('art/bach.jpg', bach_position, black_frame, "x-");
 
 var comic_position = new THREE.Vector3(0.0, 3, 49.8);
-load_picture('art/comic.jpg', comic_position, black_frame, "z-");
+var comic = load_picture('art/comic.jpg', comic_position, black_frame, "z-");
 
 var shapes_position = new THREE.Vector3(15.0, 3, 49.8);
-load_picture('art/shapes.jpg', shapes_position, blue_frame, "z-");
+var shapes = load_picture('art/shapes.jpg', shapes_position, blue_frame, "z-");
 
-var plate_position = new THREE.Vector3(-9.7, -3, 0);
+var plate_position = new THREE.Vector3(-9.7, -1.5, 0);
 var plate_texture = new THREE.TextureLoader().load('resources/gold_plate.png');
 var plate_material = new THREE.MeshPhongMaterial({map:plate_texture});
 make_wall(0.05, 1, 2, plate_position, plate_material);
@@ -278,12 +306,11 @@ scene.add( lathe );
 
 //Lighting
 
-var light = new THREE.PointLight(0xffffff, 1, 50);
+var light = new THREE.PointLight(0xffffff, 1, 25);
 light.position.set(10, 10, 0);
 scene.add(light);
 var helper = new THREE.PointLightHelper(light);
 scene.add(helper);
-
 var light2 = new THREE.PointLight(0xffffff, 1, 50);
 light2.position.set(10, 10, -30);
 scene.add(light2);
@@ -296,12 +323,16 @@ scene.add(light3);
 var helper3 = new THREE.PointLightHelper(light3);
 scene.add(helper3);
 
-/*
-var spotLight = new THREE.SpotLight(0xff0000, 1, 100);
-spotLight.position.set(50, 5, 10);
-spotLight.target = archway_rings[0];
-scene.add(spotLight);
-*/
+var tunnel_light = new THREE.PointLight(0xffffff, 1, 50);
+tunnel_light.position.set(50, 5, 10);
+scene.add(tunnel_light);
+var tunnel_helper = new THREE.PointLightHelper(tunnel_light);
+//scene.add(tunnel_helper);
+
+console.log(pictures[0]);
+
+
+
 
 
 
