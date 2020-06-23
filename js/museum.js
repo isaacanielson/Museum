@@ -36,10 +36,10 @@ var wall_color = 0xffffff;
 function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 	var wall_geometry = new THREE.BufferGeometry();
 
-	var wall_material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide});
+	var wall_material = new THREE.MeshPhongMaterial({color: 0xffffff, side: THREE.DoubleSide});
 
 	var plane = new THREE.Mesh(wall_geometry, wall_material);
-	scene.add(plane)
+	scene.add(plane);
 
 }
 
@@ -60,8 +60,8 @@ function make_wall(width, height, depth, position, material){
 
 function make_picture(position, picture, frame, aspect_ratio, orientation){
 
-	height = 7.5;
-	width = height * aspect_ratio;
+	var height = 7.5;
+	var width = height * aspect_ratio;
 	var frame_position = position;
 	if (orientation == "x+"){
 		make_wall(0.02, height, width, position, picture);
@@ -93,7 +93,7 @@ function load_picture(src, position, frame, orientation){
 		aspect_ratio = width/height;
 		var texture = new THREE.TextureLoader().load(this.src);
 
-		var material = new THREE.MeshBasicMaterial({map:texture});
+		var material = new THREE.MeshPhongMaterial({map:texture});
 		//var position = new THREE.Vector3(-9.8, 0, 7.5);
 		make_picture(position, material, frame, aspect_ratio, orientation);
 	}
@@ -103,7 +103,7 @@ function load_picture(src, position, frame, orientation){
 // Adds walls and pictures
 var wall_y = 5.0;
 
-var left_wall_material = new THREE.MeshBasicMaterial({color: 0xf0ead6});
+var left_wall_material = new THREE.MeshPhongMaterial({color: 0xf0ead6});
 var left_wall_position = new THREE.Vector3(-10.0, wall_y, 0.0);
 make_wall(0.2, 20.0, 100.0, left_wall_position, left_wall_material);
 
@@ -123,32 +123,32 @@ var floor_texture = new THREE.TextureLoader().load('art/floor.jpg');
 floor_texture.wrapS = THREE.MirroredRepeatWrapping;
 floor_texture.wrapT = THREE.MirroredRepeatWrapping;
 floor_texture.repeat.set(25,25);
-var floor_material = new THREE.MeshBasicMaterial({map:floor_texture});
+var floor_material = new THREE.MeshPhongMaterial({map:floor_texture});
 var floor_position = new THREE.Vector3(0, -5, 0);
 make_wall(50.0, 0.1, 100.0, floor_position, floor_material);
 
 
-var gold_frame = new THREE.MeshBasicMaterial({color:0xffd700});
-var silver_frame = new THREE.MeshBasicMaterial({color:0xC0C0C0});
-var red_frame = new THREE.MeshBasicMaterial({color:0xff0000});
-var blue_frame = new THREE.MeshBasicMaterial({color:0x0000ff});
-var black_frame = new THREE.MeshBasicMaterial({color:0x000000});
+var gold_frame = new THREE.MeshPhongMaterial({color:0xffd700});
+var silver_frame = new THREE.MeshPhongMaterial({color:0xC0C0C0});
+var red_frame = new THREE.MeshPhongMaterial({color:0xff0000});
+var blue_frame = new THREE.MeshPhongMaterial({color:0x0000ff});
+var black_frame = new THREE.MeshPhongMaterial({color:0x000000});
 
 
 
 var figures_position = new THREE.Vector3(-9.8, 3, 0);
 load_picture('art/figures.jpg', figures_position, gold_frame, "x+");
 
-var m_position = new THREE.Vector3(-9.8, 3, 7.5);
-load_picture('art/misunderstood.jpg', m_position, black_frame, "x+");
+var misunderstood_position = new THREE.Vector3(-9.8, 3, 15.0);
+load_picture('art/misunderstood.jpg', misunderstood_position, black_frame, "x+");
 
-var mushroom_position = new THREE.Vector3(-9.8, 3, -7.5);
+var mushroom_position = new THREE.Vector3(-9.8, 3, -15.0);
 load_picture('art/mushroom.jpg', mushroom_position, black_frame, "x+");
 
-var needle_position = new THREE.Vector3(-9.8, 3, 15);
+var needle_position = new THREE.Vector3(-9.8, 3, 30);
 load_picture('art/needle.jpg', needle_position, blue_frame, "x+");
 
-var slouched_position = new THREE.Vector3(-9.8, 3, -15);
+var slouched_position = new THREE.Vector3(-9.8, 3, -30);
 load_picture('art/slouched.jpg', slouched_position, red_frame, "x+");
 
 var mask_position = new THREE.Vector3(0, 3, -49.8);
@@ -160,12 +160,21 @@ load_picture('art/anatomy.jpg', anatomy_position, black_frame, "z+");
 var nude_position = new THREE.Vector3(24.8, 3, -30.0);
 load_picture('art/nude.jpg', nude_position, black_frame, "x-");
 
+var stretch_position = new THREE.Vector3(24.8, 3, -15.0);
+load_picture('art/stretch.jpg', stretch_position, black_frame, "x-");
+
+var bach_position = new THREE.Vector3(24.8, 3, 35.0);
+load_picture('art/bach.jpg', bach_position, black_frame, "x-");
+
 var comic_position = new THREE.Vector3(0.0, 3, 49.8);
 load_picture('art/comic.jpg', comic_position, black_frame, "z-");
 
+var shapes_position = new THREE.Vector3(15.0, 3, 49.8);
+load_picture('art/shapes.jpg', shapes_position, blue_frame, "z-");
+
 var plate_position = new THREE.Vector3(-9.7, -3, 0);
 var plate_texture = new THREE.TextureLoader().load('resources/gold_plate.png');
-var plate_material = new THREE.MeshBasicMaterial({map:plate_texture});
+var plate_material = new THREE.MeshPhongMaterial({map:plate_texture});
 make_wall(0.05, 1, 2, plate_position, plate_material);
 
 
@@ -212,7 +221,7 @@ for (i = 0; i < 10; i++){
 	for (j = 0; j < 10; j++){
 		var hedron_geometry = new THREE.TetrahedronGeometry(1 + i%2, i%2);
 
-		var hedron_material = new THREE.MeshBasicMaterial(0x00ff);
+		var hedron_material = new THREE.MeshPhongMaterial(0x00ff);
 
 		var new_hedron = new THREE.Mesh(hedron_geometry, hedron_material);
 
@@ -233,7 +242,7 @@ archway_rings = [];
 for (i = 0; i < 25; i++){
 	var ring_geometry = new THREE.RingGeometry(6, 15, 8);
 	var ring_color = new THREE.Color(0 + i * 1.0/25.0, 0 + i * 1.0/25.0, 0 + i * 1.0/50.0);
-	var ring_material = new THREE.MeshBasicMaterial({color:ring_color, side: THREE.DoubleSide});
+	var ring_material = new THREE.MeshPhongMaterial({color:ring_color, side: THREE.DoubleSide});
 	var ring = new THREE.Mesh(ring_geometry, ring_material);
 
 
@@ -255,7 +264,7 @@ for ( var i = 0; i < 10; i ++ ) {
 	points.push( new THREE.Vector2( Math.sin( i * 0.2 ) * 10 + 5, ( i - 5 ) * 2 ) );
 }
 var geometry = new THREE.LatheGeometry( points );
-var material = new THREE.MeshBasicMaterial( { color: 0x808080 } );
+var material = new THREE.MeshPhongMaterial( { color: 0x808080 } );
 var lathe = new THREE.Mesh( geometry, material );
 
 lathe.translateOnAxis(x_axis, 100);
@@ -268,19 +277,35 @@ lathe.side = THREE.DoubleSide;
 scene.add( lathe );
 
 //Lighting
-/*
-var sphere = new THREE.SphereBufferGeometry(0.5, 16, 8);
 
-var light = new THREE.PointLight(0xff0000, 1, 100);
-light.add(new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({color:0xff0000})));
-light.position.set(0, 2, 0);
-light.castShadow = true;
-light.shadow.mapSize.width = 512;
-light.shadow.mapSize.height = 512;
-light.shadow.camera.near = 0.5;
-light.shadow.camera.far = 500;
+var light = new THREE.PointLight(0xffffff, 1, 50);
+light.position.set(10, 10, 0);
 scene.add(light);
+var helper = new THREE.PointLightHelper(light);
+scene.add(helper);
+
+var light2 = new THREE.PointLight(0xffffff, 1, 50);
+light2.position.set(10, 10, -30);
+scene.add(light2);
+var helper2 = new THREE.PointLightHelper(light2);
+scene.add(helper2);
+
+var light3 = new THREE.PointLight(0xffffff, 1, 50);
+light3.position.set(10, 10, 30);
+scene.add(light3);
+var helper3 = new THREE.PointLightHelper(light3);
+scene.add(helper3);
+
+/*
+var spotLight = new THREE.SpotLight(0xff0000, 1, 100);
+spotLight.position.set(50, 5, 10);
+spotLight.target = archway_rings[0];
+scene.add(spotLight);
 */
+
+
+
+
 
 
 
@@ -382,6 +407,12 @@ window.addEventListener('keypress', function(e){
 			d_pressed = true;
 			move_right();
 			break;
+		case 'q':
+			q_pressed = true;
+			camera.rotateOnAxis(z_axis, 0.2);
+		case 'e':
+			e_pressed = true;
+			camera.rotateOnAxis(z_axis, -0.1);
 	}
 	//console.log(event.x);
 });
@@ -408,6 +439,9 @@ window.addEventListener('mousemove', function(e){
 
 
 
+	camera.rotateOnAxis(x_axis, vertical_rot);
+
+
 	// Horizontal rotation about up vector
 	camera.rotateOnAxis(y_axis, horizontal_rot);
 
@@ -420,7 +454,6 @@ window.addEventListener('mousemove', function(e){
 	//console.log("Side vector");
 	//console.log(target);
 
-	camera.rotateOnAxis(x_axis, vertical_rot);
 });
 
 
