@@ -121,7 +121,7 @@ function load_picture(src, position, frame, orientation){
 		console.log(spotLight.target);
 		spotLighthelper = new THREE.SpotLightHelper(spotLight);
 		scene.add(spotLight);
-		sscene.add(spotLighthelper);
+		scene.add(spotLighthelper);
 		
 	}
 	new_img.src = src;
@@ -130,6 +130,8 @@ function load_picture(src, position, frame, orientation){
 
 // Adds walls and pictures
 var wall_y = 5.0;
+
+var observatory_y = 5.0;
 
 var left_wall_material = new THREE.MeshPhongMaterial({color: 0xffffff});
 var left_wall_position = new THREE.Vector3(-10.0, wall_y, 0.0);
@@ -142,10 +144,14 @@ var right_wall_position = new THREE.Vector3(25.0, wall_y, -25.0);
 make_wall(0.2, 20.0, 50.0, right_wall_position, left_wall_material);
 
 var right_wall_position2 = new THREE.Vector3(25.0, wall_y, 35.0);
-make_wall(.02, 20.0, 30.0, right_wall_position2, left_wall_material);
+make_wall(0.2, 20.0, 30.0, right_wall_position2, left_wall_material);
 
 var back_wall_position = new THREE.Vector3(0, wall_y, 50.0);
 make_wall(50.0, 20.0, 0.2, back_wall_position, left_wall_material)
+
+var outside_wall_position = new THREE.Vector3(100, observatory_y, 15);
+make_wall(0.2, 50, 75, outside_wall_position, left_wall_material);
+
 
 var floor_texture = new THREE.TextureLoader().load('resources/floor2.jpg');
 floor_texture.wrapS = THREE.MirroredRepeatWrapping;
@@ -200,10 +206,15 @@ var comic = load_picture('art/comic.jpg', comic_position, black_frame, "z-");
 var shapes_position = new THREE.Vector3(15.0, 3, 49.8);
 var shapes = load_picture('art/shapes.jpg', shapes_position, blue_frame, "z-");
 
+var white_position = new THREE.Vector3(99.8, 3, 10);
+var white = load_picture('art/2020_06_11_white_memorial_chapel.jpg', white_position, silver_frame, "x-");
+
 var plate_position = new THREE.Vector3(-9.7, -1.5, 0);
 var plate_texture = new THREE.TextureLoader().load('resources/gold_plate.png');
 var plate_material = new THREE.MeshPhongMaterial({map:plate_texture});
 make_wall(0.05, 1, 2, plate_position, plate_material);
+
+
 
 
 /*
@@ -328,6 +339,14 @@ tunnel_light.position.set(50, 5, 10);
 scene.add(tunnel_light);
 var tunnel_helper = new THREE.PointLightHelper(tunnel_light);
 //scene.add(tunnel_helper);
+
+
+var outer_light = new THREE.PointLight(0xffffff, 1, 75);
+outer_light.position.set(75, 10, 10);
+scene.add(outer_light);
+var outer_helper = new THREE.PointLightHelper(outer_light);
+//scene.add(outer_helper);
+var white_position = new THREE.Vector3(99.8, 3, 10);
 
 console.log(pictures[0]);
 
