@@ -105,23 +105,23 @@ function load_picture(src, position, frame, orientation){
 
 		var spotLight = new THREE.SpotLight(0xffffff, 1, 10, Math.PI/4);
 		if (orientation == "x+"){
-			spotLight.position.set(pic.position.x + 5, pic.position.y + 0, pic.position.z);
+			spotLight.position.set(pic.position.x + 1.5, pic.position.y + 7.5, pic.position.z);
 		}
 		else if (orientation == "x-"){
-			spotLight.position.set(pic.position.x - 5, pic.position.y + 0, pic.position.z);
+			spotLight.position.set(pic.position.x - 1.5, pic.position.y + 7.5, pic.position.z);
 		}
 		else if (orientation == "z+"){
-			spotLight.position.set(pic.position.x, pic.position.y + 0, pic.position.z + 5);
+			spotLight.position.set(pic.position.x, pic.position.y + 7.5, pic.position.z + 1.5);
 		}
 		else if (orientation == "z-"){
-			spotLight.position.set(pic.position.x, pic.position.y + 0, pic.position.z - 5);
+			spotLight.position.set(pic.position.x, pic.position.y + 7.5, pic.position.z - 1.5);
 		}
 
 		spotLight.target = pic;
 		console.log(spotLight.target);
 		spotLighthelper = new THREE.SpotLightHelper(spotLight);
 		scene.add(spotLight);
-		//scene.add(spotLighthelper);
+		sscene.add(spotLighthelper);
 		
 	}
 	new_img.src = src;
@@ -131,7 +131,7 @@ function load_picture(src, position, frame, orientation){
 // Adds walls and pictures
 var wall_y = 5.0;
 
-var left_wall_material = new THREE.MeshPhongMaterial({color: 0xf0ead6});
+var left_wall_material = new THREE.MeshPhongMaterial({color: 0xffffff});
 var left_wall_position = new THREE.Vector3(-10.0, wall_y, 0.0);
 make_wall(0.2, 20.0, 100.0, left_wall_position, left_wall_material);
 
@@ -147,10 +147,10 @@ make_wall(.02, 20.0, 30.0, right_wall_position2, left_wall_material);
 var back_wall_position = new THREE.Vector3(0, wall_y, 50.0);
 make_wall(50.0, 20.0, 0.2, back_wall_position, left_wall_material)
 
-var floor_texture = new THREE.TextureLoader().load('art/floor.jpg');
+var floor_texture = new THREE.TextureLoader().load('resources/floor2.jpg');
 floor_texture.wrapS = THREE.MirroredRepeatWrapping;
 floor_texture.wrapT = THREE.MirroredRepeatWrapping;
-floor_texture.repeat.set(25,25);
+floor_texture.repeat.set(5, 5);
 var floor_material = new THREE.MeshPhongMaterial({map:floor_texture});
 var floor_position = new THREE.Vector3(0, -5, 0);
 make_wall(50.0, 0.1, 100.0, floor_position, floor_material);
