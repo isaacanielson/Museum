@@ -1,8 +1,8 @@
 // Museum by Isaac Nielson
-// Featuring works by Austin Overmoe
+// Featuring works by Austin Overmoe and Adam Overmoe
 // THREE.js
-// Floor texture from: www.textures4photoshop.com
 // Gold Plate from: https://officialpsds.com/gold-plate-psd-724n5j
+// Helpful tutorials from https://threejsfundamentals.org/
 
 
 var scene = new THREE.Scene();
@@ -24,16 +24,20 @@ var pictures = [];
 rotate_left = new THREE.Euler(0, Math.PI/2, 0, 'XYZ');
 rotate_right = new THREE.Euler(0, -Math.PI/2, 0, 'XYZ');
 
-
-//var geometry = new THREE.BoxGeometry();
-//var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-//var texture = new THREE.TextureLoader().load('art/figures.jpg');
-//var material = new THREE.MeshBasicMaterial({map:texture});
-//var cube = new THREE.Mesh( geometry, material );
-//scene.add( cube );
-
 var wall_color = 0xffffff;
 
+function resizeRendererToDisplaySize(renderer) {
+	const canvas = renderer.domElement;
+	const width = canvas.clientWidth;
+	const height = canvas.clientHeight;
+	const needResize = canvas.width !== width || canvas.height !== height;
+	//console.log("Needs resize:");
+	//console.log(needResize);
+	if (needResize) {
+	  renderer.setSize(width, height, false);
+	}
+	return needResize;
+}
 
 function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 	var wall_geometry = new THREE.BufferGeometry();
@@ -46,16 +50,19 @@ function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 }
 
 
-
 // Makes a box with given w,h,d,pos,and material
 // Position is center of wall
-function make_wall(width, height, depth, position, material){
+function make_wall(width, height, depth, position, material, rotation=0){
 	wall = new THREE.BoxGeometry(width, height, depth, 100, 100);	
 	var new_wall = new THREE.Mesh(wall, material);
+
+
 
 	new_wall.translateOnAxis(x_axis, position.x);
 	new_wall.translateOnAxis(y_axis, position.y);
 	new_wall.translateOnAxis(z_axis, position.z);
+	new_wall.rotateOnAxis(y_axis, rotation);
+	
 
 	scene.add(new_wall);
 	return new_wall;
@@ -89,7 +96,7 @@ function make_picture(position, picture, frame, aspect_ratio, orientation){
 	}
 	return to_return;
 }
-
+// Loads a picture with a given source, position, frame, and orientation (i.e. "z+")
 function load_picture(src, position, frame, orientation){
 	var new_img = new Image();
 	new_img.onload = function(){
@@ -105,20 +112,20 @@ function load_picture(src, position, frame, orientation){
 
 		var spotLight = new THREE.SpotLight(0xffffff, 1, 10, Math.PI/4);
 		if (orientation == "x+"){
-			spotLight.position.set(pic.position.x + 1.5, pic.position.y + 7.5, pic.position.z);
+			spotLight.position.set(pic.position.x + 2.5, pic.position.y + 7.5, pic.position.z);
 		}
 		else if (orientation == "x-"){
-			spotLight.position.set(pic.position.x - 1.5, pic.position.y + 7.5, pic.position.z);
+			spotLight.position.set(pic.position.x - 2.5, pic.position.y + 7.5, pic.position.z);
 		}
 		else if (orientation == "z+"){
-			spotLight.position.set(pic.position.x, pic.position.y + 7.5, pic.position.z + 1.5);
+			spotLight.position.set(pic.position.x, pic.position.y + 7.5, pic.position.z + 2.5);
 		}
 		else if (orientation == "z-"){
-			spotLight.position.set(pic.position.x, pic.position.y + 7.5, pic.position.z - 1.5);
+			spotLight.position.set(pic.position.x, pic.position.y + 7.5, pic.position.z - 2.5);
 		}
 
 		spotLight.target = pic;
-		console.log(spotLight.target);
+		//console.log(spotLight.target);
 		spotLighthelper = new THREE.SpotLightHelper(spotLight);
 		scene.add(spotLight);
 		//scene.add(spotLighthelper);
@@ -128,10 +135,8 @@ function load_picture(src, position, frame, orientation){
 
 }
 
-// Adds walls and pictures
+// Adds walls and pictures to starting room
 var wall_y = 5.0;
-
-var observatory_y = 5.0;
 
 var left_wall_material = new THREE.MeshPhongMaterial({color: 0xffffff});
 var left_wall_position = new THREE.Vector3(-10.0, wall_y, 0.0);
@@ -149,9 +154,6 @@ make_wall(0.2, 20.0, 30.0, right_wall_position2, left_wall_material);
 var back_wall_position = new THREE.Vector3(0, wall_y, 50.0);
 make_wall(50.0, 20.0, 0.2, back_wall_position, left_wall_material)
 
-var outside_wall_position = new THREE.Vector3(200, observatory_y, 15);
-make_wall(0.2, 50, 75, outside_wall_position, left_wall_material);
-
 
 var floor_texture = new THREE.TextureLoader().load('resources/floor2.jpg');
 floor_texture.wrapS = THREE.MirroredRepeatWrapping;
@@ -160,6 +162,8 @@ floor_texture.repeat.set(5, 5);
 var floor_material = new THREE.MeshPhongMaterial({map:floor_texture});
 var floor_position = new THREE.Vector3(0, -5, 0);
 make_wall(50.0, 0.1, 100.0, floor_position, floor_material);
+
+
 
 
 var gold_frame = new THREE.MeshPhongMaterial({color:0xffd700});
@@ -206,8 +210,7 @@ var comic = load_picture('art/comic.jpg', comic_position, black_frame, "z-");
 var shapes_position = new THREE.Vector3(15.0, 3, 49.8);
 var shapes = load_picture('art/shapes.jpg', shapes_position, blue_frame, "z-");
 
-var white_position = new THREE.Vector3(199.8, 3, 10);
-var white = load_picture('art/2020_06_11_white_memorial_chapel.jpg', white_position, silver_frame, "x-");
+
 
 var plate_position = new THREE.Vector3(-9.7, -1.5, 0);
 var plate_texture = new THREE.TextureLoader().load('resources/gold_plate.png');
@@ -215,8 +218,49 @@ var plate_material = new THREE.MeshPhongMaterial({map:plate_texture});
 make_wall(0.05, 1, 2, plate_position, plate_material);
 
 
+// Observatory
 
+var observatory_y = 5.0;
 
+var observatory_floor_position = new THREE.Vector3(150, -5, 10);
+make_wall(150, 0.1, 150, observatory_floor_position, floor_material);
+
+for (i=0; i < 8; i++){
+	observatory_wall_position = new THREE.Vector3(200, observatory_y, 10);
+	
+	// Octagon
+	// Center of wall is position
+	// Width of 50
+	// P2 = initial x + w/2 + sqrt((w/2)^2 / 2) 
+	half_wall_width = 25.0;
+	wall_offset = Math.sqrt(((half_wall_width) * (half_wall_width)) / 2.0);
+
+	if (i < 3 && i > 0){
+		observatory_wall_position.z += i * wall_offset + half_wall_width;
+		observatory_wall_position.x -= i * wall_offset + half_wall_width * (i - 1);
+	}
+	else if (i == 3){
+		observatory_wall_position.z += wall_offset + half_wall_width;
+		observatory_wall_position.x -= 3 * wall_offset + half_wall_width * 2; 
+	}
+
+	else if (i > 5){
+		observatory_wall_position.z -= (8 - i) * wall_offset + half_wall_width;
+		observatory_wall_position.x -= (8 - i) * wall_offset + half_wall_width * ((8-i) - 1);
+	}
+	else if (i == 5){
+		observatory_wall_position.z -= wall_offset + half_wall_width;
+		observatory_wall_position.x -= 3 * wall_offset + half_wall_width * 2; 
+	}
+
+	make_wall(0.2, 50, 50, observatory_wall_position, left_wall_material, -Math.PI/4 * i);
+}
+
+var white_position = new THREE.Vector3(199.8, observatory_y, 0);
+var white = load_picture('art/2020_06_11_white_memorial_chapel.jpg', white_position, silver_frame, "x-");
+
+var akward_position = new THREE.Vector3(199.8, observatory_y, 15);
+var akward = load_picture('Designs/Designs/akward.jpeg', akward_position, silver_frame, "x-");
 /*
 var font_loader = new THREE.FontLoader();
 var test_font = font_loader.load('fonts/ComicSansMedium.json', 
@@ -280,7 +324,7 @@ for (i = 0; i < 10; i++){
 var centerpiece_geometry = new THREE.TetrahedronGeometry(1, 0);
 var centerpiece_material = new THREE.MeshPhongMaterial(0xffffff);
 var centerpiece = new THREE.Mesh(centerpiece_geometry, centerpiece_material);
-var centerpiece_position = new THREE.Vector3(100, 2, 10);
+var centerpiece_position = new THREE.Vector3(135, 5, 10);
 centerpiece.translateOnAxis(x_axis, centerpiece_position.x);
 centerpiece.translateOnAxis(y_axis, centerpiece_position.y);
 centerpiece.translateOnAxis(z_axis, centerpiece_position.z);
@@ -288,17 +332,24 @@ centerpiece.translateOnAxis(z_axis, centerpiece_position.z);
 scene.add(centerpiece);
 
 // Centerpiece lighting
-
-var centerpiece_light = new THREE.PointLight(0xff0000, 1, 25);
-centerpiece_light.position.set(100, 10, 10);
+var centerpiece_light = new THREE.PointLight(0xff0000, 1, 75);
+centerpiece_light.position.set(centerpiece_position.x, 0, centerpiece_position.z);
 var centerpiece_light_helper = new THREE.PointLightHelper(centerpiece_light);
 scene.add(centerpiece_light);
 scene.add(centerpiece_light_helper);
 
-var centerpiece_light2 = new THREE.PointLight(0x0000ff, 1, 25);
-centerpiece_light2.position.set(100, 0, 10);
-//scene.add(centerpiece_light2);
+var centerpiece_light2 = new THREE.PointLight(0x0000ff, 1, 75);
+centerpiece_light2.position.set(centerpiece_position.x, 0, centerpiece_position.z);
+var centerpiece_light_helper2 = new THREE.PointLightHelper(centerpiece_light2);
+scene.add(centerpiece_light2);
+scene.add(centerpiece_light_helper2);
 
+
+var centerpiece_light3 = new THREE.PointLight(0x00ff00, 1, 75);
+centerpiece_light3.position.set(centerpiece_position.x, 0, centerpiece_position.z);
+var centerpiece_light_helper3 = new THREE.PointLightHelper(centerpiece_light3);
+scene.add(centerpiece_light3);
+scene.add(centerpiece_light_helper3);
 
 
 
@@ -325,18 +376,22 @@ for (i = 0; i < 25; i++){
 
 //Dome (Currently only one-sided)
 var points = [];
-for ( var i = 0; i < 10; i ++ ) {
+for ( var i = 0; i < 8; i ++ ) {
 	points.push( new THREE.Vector2( Math.sin( i * 0.2 ) * 10 + 5, ( i - 5 ) * 2 ) );
+	points[i].x *= 4.75;
+	points[i].y *= 4.75;
 }
 var geometry = new THREE.LatheGeometry( points );
 var material = new THREE.MeshPhongMaterial( { color: 0x808080 } );
-var lathe = new THREE.Mesh( geometry, material );
+var lathe = new THREE.Mesh( geometry, left_wall_material );
 
-lathe.translateOnAxis(x_axis, 100);
+lathe.translateOnAxis(x_axis, 140);
 lathe.translateOnAxis(z_axis, 10);
-lathe.translateOnAxis(y_axis, 30);
+lathe.translateOnAxis(y_axis, 60);
 lathe.rotateOnAxis(x_axis, Math.PI);
-lathe.side = THREE.DoubleSide;
+
+lathe.material.side = THREE.DoubleSide;
+//lathe.material.needsUpdate = true;
 
 
 scene.add( lathe );
@@ -360,22 +415,37 @@ scene.add(light3);
 var helper3 = new THREE.PointLightHelper(light3);
 scene.add(helper3);
 
-var tunnel_light = new THREE.PointLight(0xffffff, 1, 50);
-tunnel_light.position.set(50, 5, 10);
+var tunnel_light = new THREE.PointLight(0xffffff, 1, 25);
+tunnel_light.position.set(50, -5, 10);
 scene.add(tunnel_light);
 var tunnel_helper = new THREE.PointLightHelper(tunnel_light);
-//scene.add(tunnel_helper);
+scene.add(tunnel_helper);
 
 
-var outer_light = new THREE.PointLight(0xffffff, 1, 75);
-outer_light.position.set(75, 10, 10);
+var outer_light = new THREE.PointLight(0xffffff, 1, 25);
+outer_light.position.set(50, 10, 10);
 scene.add(outer_light);
 var outer_helper = new THREE.PointLightHelper(outer_light);
-//scene.add(outer_helper);
+scene.add(outer_helper);
 var white_position = new THREE.Vector3(99.8, 3, 10);
 
-console.log(pictures[0]);
+//console.log(pictures[0]);
 
+var sphere_geometry = new THREE.SphereGeometry(1, 3, 2);
+var sphere_material = new THREE.MeshPhongMaterial(0xffffff);
+var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
+var sphere_position = new THREE.Vector3(135, 100, 10);
+sphere.translateOnAxis(x_axis, sphere_position.x);
+sphere.translateOnAxis(y_axis, sphere_position.y);
+sphere.translateOnAxis(z_axis, sphere_position.z);
+
+scene.add(sphere);
+
+var observatory_spotlight = new THREE.SpotLight(0xffffff, 1, 100, Math.PI/8);
+observatory_spotlight.position.set(centerpiece_position.x, 20, centerpiece_position.z);
+observatory_spotlight.target = sphere;
+
+scene.add(observatory_spotlight);
 
 
 
@@ -393,6 +463,15 @@ time = 0.0;
 function animate() {
 	requestAnimationFrame( animate );
 	renderer.render( scene, camera );
+
+
+	if (resizeRendererToDisplaySize(renderer)) {
+	    const canvas = renderer.domElement;
+	    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+	    camera.updateProjectionMatrix();
+	    console.log("resizing");
+  	}
+
 	for (var i = ceiling_hedrons.length - 1; i >= 0; i--) {
 		ceiling_hedrons[i].rotateOnAxis(x_axis, 0.01);
 		ceiling_hedrons[i].rotateOnAxis(y_axis, 0.01);
@@ -416,16 +495,25 @@ function animate() {
 
 	centerpiece.rotateOnAxis(x_axis, 0.01);
 	centerpiece.rotateOnAxis(z_axis, 0.01);
-	//centerpiece_light.translateOnAxis(z_axis, Math.sin(time * 0.1));
 
-	if (Math.sin(time * 0.1) > 0){
-		centerpiece_light.translateOnAxis(y_axis, 0.1 * Math.sin(time));
-		console.log(Math.sin(time));
-		console.log(centerpiece_light.position.y);
-	}
-	else{
-		centerpiece_light.translateOnAxis(y_axis, -1);
-	}
+	centerpiece_light.translateOnAxis(y_axis, 0.1 * Math.sin(time));
+	centerpiece_light.translateOnAxis(z_axis, 0.1 * Math.cos(time));
+	
+	centerpiece_light2.translateOnAxis(y_axis, 0.1 * Math.sin(time));
+	centerpiece_light2.translateOnAxis(x_axis, 0.1 * Math.cos(time));
+
+	centerpiece_light3.translateOnAxis(y_axis, 0.1 * Math.sin(time));
+	centerpiece_light3.translateOnAxis(x_axis, 0.1 * Math.cos(time));
+	centerpiece_light3.translateOnAxis(z_axis, 0.1 * Math.cos(time));
+
+	outer_light.translateOnAxis(x_axis, 0.1 * Math.sin(time));
+	tunnel_light.translateOnAxis(x_axis, 0.1 * -Math.sin(time));
+
+
+	sphere.translateOnAxis(x_axis, 0.1 * Math.sin(time));
+	sphere.translateOnAxis(z_axis, 0.1 * Math.sin(time));
+	//sphere.translateOnAxis(y_axis, 0.1 * Math.cos(time));
+
 
 
 
