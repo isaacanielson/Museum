@@ -121,7 +121,7 @@ function load_picture(src, position, frame, orientation){
 		console.log(spotLight.target);
 		spotLighthelper = new THREE.SpotLightHelper(spotLight);
 		scene.add(spotLight);
-		scene.add(spotLighthelper);
+		//scene.add(spotLighthelper);
 		
 	}
 	new_img.src = src;
@@ -149,7 +149,7 @@ make_wall(0.2, 20.0, 30.0, right_wall_position2, left_wall_material);
 var back_wall_position = new THREE.Vector3(0, wall_y, 50.0);
 make_wall(50.0, 20.0, 0.2, back_wall_position, left_wall_material)
 
-var outside_wall_position = new THREE.Vector3(100, observatory_y, 15);
+var outside_wall_position = new THREE.Vector3(200, observatory_y, 15);
 make_wall(0.2, 50, 75, outside_wall_position, left_wall_material);
 
 
@@ -206,7 +206,7 @@ var comic = load_picture('art/comic.jpg', comic_position, black_frame, "z-");
 var shapes_position = new THREE.Vector3(15.0, 3, 49.8);
 var shapes = load_picture('art/shapes.jpg', shapes_position, blue_frame, "z-");
 
-var white_position = new THREE.Vector3(99.8, 3, 10);
+var white_position = new THREE.Vector3(199.8, 3, 10);
 var white = load_picture('art/2020_06_11_white_memorial_chapel.jpg', white_position, silver_frame, "x-");
 
 var plate_position = new THREE.Vector3(-9.7, -1.5, 0);
@@ -274,6 +274,32 @@ for (i = 0; i < 10; i++){
 		scene.add(ceiling_hedrons[i*10 + j]);
 	}
 }
+
+
+// Centerpiece 
+var centerpiece_geometry = new THREE.TetrahedronGeometry(1, 0);
+var centerpiece_material = new THREE.MeshPhongMaterial(0xffffff);
+var centerpiece = new THREE.Mesh(centerpiece_geometry, centerpiece_material);
+var centerpiece_position = new THREE.Vector3(100, 2, 10);
+centerpiece.translateOnAxis(x_axis, centerpiece_position.x);
+centerpiece.translateOnAxis(y_axis, centerpiece_position.y);
+centerpiece.translateOnAxis(z_axis, centerpiece_position.z);
+
+scene.add(centerpiece);
+
+// Centerpiece lighting
+
+var centerpiece_light = new THREE.PointLight(0xff0000, 1, 25);
+centerpiece_light.position.set(100, 10, 10);
+var centerpiece_light_helper = new THREE.PointLightHelper(centerpiece_light);
+scene.add(centerpiece_light);
+scene.add(centerpiece_light_helper);
+
+var centerpiece_light2 = new THREE.PointLight(0x0000ff, 1, 25);
+centerpiece_light2.position.set(100, 0, 10);
+//scene.add(centerpiece_light2);
+
+
 
 
 // Archway
@@ -387,6 +413,21 @@ function animate() {
 
 
 	}
+
+	centerpiece.rotateOnAxis(x_axis, 0.01);
+	centerpiece.rotateOnAxis(z_axis, 0.01);
+	//centerpiece_light.translateOnAxis(z_axis, Math.sin(time * 0.1));
+
+	if (Math.sin(time * 0.1) > 0){
+		centerpiece_light.translateOnAxis(y_axis, 0.1 * Math.sin(time));
+		console.log(Math.sin(time));
+		console.log(centerpiece_light.position.y);
+	}
+	else{
+		centerpiece_light.translateOnAxis(y_axis, -1);
+	}
+
+
 
 	time += 0.01
 
