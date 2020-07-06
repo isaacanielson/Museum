@@ -26,6 +26,10 @@ var centerpiece_light3;
 var tunnel_light;
 var outer_light;
 var sphere;
+var walls = [];
+var texts = [];
+var pictures = [];
+var black_frame = new THREE.MeshPhongMaterial({color:0x000000});
 
 function init(){
 
@@ -38,15 +42,7 @@ function init(){
 	document.body.appendChild( renderer.domElement );
 	document.body.appendChild(VRButton.createButton(renderer));
 
-
-
-
-	var pictures = [];
-
-
-
 	var wall_color = 0xffffff;
-
 
 
 	// Adds walls and pictures to starting room
@@ -90,6 +86,10 @@ function init(){
 
 	var figures_position = new THREE.Vector3(-9.8, 3, 0);
 	var figures = load_picture('art/figures.jpg', figures_position, gold_frame, "x+");
+	var figures_plate_position = figures_position.clone();
+	figures_plate_position.y -= 4.5;
+ 	make_plate("Red and yellow forms", "04/04/2020", figures_plate_position, Math.PI/2);
+
 
 	var misunderstood_position = new THREE.Vector3(-9.8, 3, 15.0);
 	var misunderstood = load_picture('art/misunderstood.jpg', misunderstood_position, black_frame, "x+");
@@ -126,14 +126,7 @@ function init(){
 
 
 
-	var plate_position = new THREE.Vector3(-9.7, -1.5, 0);
-	var plate_texture = new THREE.TextureLoader().load('resources/gold_plate.png');
-	var plate_material = new THREE.MeshPhongMaterial({map:plate_texture});
-	make_wall(0.05, 1, 2, plate_position, plate_material);
-
-
 	// Observatory
-
 	var observatory_y = 5.0;
 
 	var observatory_floor_position = new THREE.Vector3(150, -5, 10);
@@ -175,41 +168,7 @@ function init(){
 
 	var akward_position = new THREE.Vector3(199.8, observatory_y, 15);
 	var akward = load_picture('Designs/Designs/akward.jpeg', akward_position, silver_frame, "x-");
-	/*
-	var font_loader = new THREE.FontLoader();
-	var test_font = font_loader.load('fonts/ComicSansMedium.json', 
-		//OnLoad Callback
-		function (font){
-			font_object = 
-			{
-				font: font,
-				size: 80,
-				height: 5,
-				curveSegments: 12,
-				bevelEnabled: true,
-				bevelThickness: 10,
-				bevelSize: 8,
-				bevelOffset: 0,
-				bevelSegments: 5
-			}
-			var text = new THREE.TextGeometry("Hello World!", {
-				font: font,
-				size: 80,
-				height: 5,
-				curveSegments: 12,
-				bevelEnabled: true,
-				bevelThickness: 10,
-				bevelSize: 8,
-				bevelOffset: 0,
-				bevelSegments: 5
-			});
-			//var text_geo = new THREE.Geometry().fromGeometry(text);
-			text.position = new THREE.Vector3(0, 0, 0);
-			console.log(text);
-			scene.add(text);
-		});
-	*/
-	//scene.add(text);
+	
 
 
 	// Ceiling effect
@@ -406,6 +365,7 @@ function make_wall(width, height, depth, position, material, rotation=0){
 	
 
 	scene.add(new_wall);
+	walls.push(new_wall);
 	return new_wall;
 }
 
@@ -476,6 +436,77 @@ function load_picture(src, position, frame, orientation){
 
 }
 
+
+	// Text
+	function make_text(text, size, height, position, material, rotation=0)
+	{
+		const loader = new THREE.FontLoader();
+		function loadFont(url) {
+	      return new Promise((resolve, reject) => {
+	        loader.load(url, resolve, undefined, reject);
+	      });
+	    }
+
+	    async function doit() {
+	      const font = await loadFont('./fonts/helvetiker_regular.typeface.json');   
+	      const geometry = new THREE.TextBufferGeometry(text, {
+	        font: font,
+	        size: size,
+	        height: height,
+	        curveSegments: 12,
+	        bevelEnabled: false,
+	        bevelThickness: 0.15,
+	        bevelSize: .3,
+	        bevelSegments: 5,
+	      });
+
+	 	
+
+	 		var text_mesh = new THREE.Mesh(geometry, material);
+
+	 		geometry.computeBoundingBox();
+	 		geometry.boundingBox.getCenter(text_mesh.position).multiplyScalar(-1);
+	 		const parent = new THREE.Object3D();
+	 		parent.add(text_mesh);
+
+	 		parent.translateOnAxis(x_axis, position.x);
+	 		parent.translateOnAxis(y_axis, position.y);
+	 		parent.translateOnAxis(z_axis, position.z);
+	 		parent.rotateOnAxis(y_axis, rotation);
+	 		//parent.scale = new THREE.Vector3(0.5, 0.5, 0.5);
+
+	 		//var scale = new THREE.Matrix4();
+	 		//scale.makeScale(0.1, 0.1, 0.1);
+	 		//geometry.computeBoundingBox();
+	 		//parent.applyMatrix4(scale);
+	 		//console.log(parent.scale);
+	 		scene.add(parent);
+	 		texts.push(parent);
+	 		return parent;
+	 	}
+	 	doit();
+ 	}
+ 	// Makes a nameplate for a given piece
+ 	// TODO: Make Text Wrapping work for a given plate size
+ 	function make_plate(title, date, position, rotation=0){
+		var plate_texture = new THREE.TextureLoader().load('resources/gold_plate.png');
+		var plate_material = new THREE.MeshPhongMaterial({map:plate_texture});
+		var plate = make_wall(2, 1, 0.05, position, plate_material, rotation);
+
+
+		var title_pos = position.clone();
+		title_pos.y += 0.2
+		
+		var date_pos = title_pos.clone();
+		date_pos.y -= 0.4;
+		make_text(title, 0.1, 0.1, title_pos, black_frame, rotation);
+		make_text(date, 0.1, 0.1, date_pos, black_frame, rotation);
+		//plate.add(texts[-1]);
+
+	
+
+ 	}
+
 function animate() {
 	//requestAnimationFrame( animate );
 	//renderer.render( scene, camera );
@@ -542,6 +573,19 @@ function render(){
 	sphere.translateOnAxis(z_axis, 0.1 * Math.cos(time));
 	//sphere.translateOnAxis(y_axis, 0.1 * Math.cos(time));
 
+
+	if (a_pressed){
+		move_left();
+	}
+	if (d_pressed){
+		move_right();
+	}
+	if (w_pressed){
+		move_forward();
+	}
+	if (s_pressed){
+		move_backward();
+	}
 
 
 
