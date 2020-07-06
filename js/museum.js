@@ -6,9 +6,6 @@
 
 import { VRButton } from './VRButton.js';
 
-var x_axis = new THREE.Vector3(1, 0, 0);
-var y_axis = new THREE.Vector3(0, 1, 0);
-var z_axis = new THREE.Vector3(0, 0, 1);
 var upVec = new THREE.Vector3(0, 1, 0);
 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 var scene = new THREE.Scene();
@@ -183,9 +180,9 @@ function init(){
 
 			var hedron_position = new THREE.Vector3(-50 + i*10, 20, -50 + j*10);
 
-			new_hedron.translateOnAxis(x_axis, hedron_position.x);
-			new_hedron.translateOnAxis(y_axis, hedron_position.y);
-			new_hedron.translateOnAxis(z_axis, hedron_position.z);
+			new_hedron.translateX(hedron_position.x);
+			new_hedron.translateY(hedron_position.y);
+			new_hedron.translateZ(hedron_position.z);
 
 			ceiling_hedrons.push(new_hedron);
 			scene.add(ceiling_hedrons[i*10 + j]);
@@ -198,9 +195,9 @@ function init(){
 	var centerpiece_material = new THREE.MeshPhongMaterial(0xffffff);
 	centerpiece = new THREE.Mesh(centerpiece_geometry, centerpiece_material);
 	var centerpiece_position = new THREE.Vector3(135, 5, 10);
-	centerpiece.translateOnAxis(x_axis, centerpiece_position.x);
-	centerpiece.translateOnAxis(y_axis, centerpiece_position.y);
-	centerpiece.translateOnAxis(z_axis, centerpiece_position.z);
+	centerpiece.translateX(centerpiece_position.x);
+	centerpiece.translateY(centerpiece_position.y);
+	centerpiece.translateZ(centerpiece_position.z);
 
 	scene.add(centerpiece);
 
@@ -237,10 +234,11 @@ function init(){
 
 		var ring_position = new THREE.Vector3(30 + i * 2, 2, 10);
 
-		ring.translateOnAxis(x_axis, ring_position.x);
-		ring.translateOnAxis(y_axis, ring_position.y);
-		ring.translateOnAxis(z_axis, ring_position.z);
-		ring.rotateOnAxis(y_axis, Math.PI/2);
+		ring.translateX(ring_position.x);
+		ring.translateY(ring_position.y);
+		ring.translateZ(ring_position.z);
+		ring.rotateY(Math.PI/2);
+		console.log("rotatedy");
 		archway_rings.push(ring);
 		scene.add(archway_rings[i]);
 
@@ -258,10 +256,10 @@ function init(){
 	var material = new THREE.MeshPhongMaterial( { color: 0x808080 } );
 	var lathe = new THREE.Mesh( geometry, left_wall_material );
 
-	lathe.translateOnAxis(x_axis, 140);
-	lathe.translateOnAxis(z_axis, 10);
-	lathe.translateOnAxis(y_axis, 60);
-	lathe.rotateOnAxis(x_axis, Math.PI);
+	lathe.translateX(140);
+	lathe.translateZ(10);
+	lathe.translateY(60);
+	lathe.rotateX(Math.PI);
 
 	lathe.material.side = THREE.DoubleSide;
 	//lathe.material.needsUpdate = true;
@@ -308,9 +306,9 @@ function init(){
 	var sphere_material = new THREE.MeshPhongMaterial(0xffffff);
 	sphere = new THREE.Mesh(sphere_geometry, sphere_material);
 	var sphere_position = new THREE.Vector3(135, 100, 10);
-	sphere.translateOnAxis(x_axis, sphere_position.x);
-	sphere.translateOnAxis(y_axis, sphere_position.y);
-	sphere.translateOnAxis(z_axis, sphere_position.z);
+	sphere.translateX(sphere_position.x);
+	sphere.translateY(sphere_position.y);
+	sphere.translateZ(sphere_position.z);
 
 	scene.add(sphere);
 
@@ -358,10 +356,10 @@ function make_wall(width, height, depth, position, material, rotation=0){
 
 
 
-	new_wall.translateOnAxis(x_axis, position.x);
-	new_wall.translateOnAxis(y_axis, position.y);
-	new_wall.translateOnAxis(z_axis, position.z);
-	new_wall.rotateOnAxis(y_axis, rotation);
+	new_wall.translateX(position.x);
+	new_wall.translateY(position.y);
+	new_wall.translateZ(position.z);
+	new_wall.rotateY(rotation);
 	
 
 	scene.add(new_wall);
@@ -469,10 +467,10 @@ function load_picture(src, position, frame, orientation){
 	 		const parent = new THREE.Object3D();
 	 		parent.add(text_mesh);
 
-	 		parent.translateOnAxis(x_axis, position.x);
-	 		parent.translateOnAxis(y_axis, position.y);
-	 		parent.translateOnAxis(z_axis, position.z);
-	 		parent.rotateOnAxis(y_axis, rotation);
+	 		parent.translateX(position.x);
+	 		parent.translateY(position.y);
+	 		parent.translateZ(position.z);
+	 		parent.rotateY(rotation);
 	 		//parent.scale = new THREE.Vector3(0.5, 0.5, 0.5);
 
 	 		//var scale = new THREE.Matrix4();
@@ -528,8 +526,8 @@ function render(){
   	}
 
 	for (var i = ceiling_hedrons.length - 1; i >= 0; i--) {
-		ceiling_hedrons[i].rotateOnAxis(x_axis, 0.01);
-		ceiling_hedrons[i].rotateOnAxis(y_axis, 0.01);
+		ceiling_hedrons[i].rotateX(0.01);
+		ceiling_hedrons[i].rotateY(0.01);
 		var red = Math.sin(time*i*0.1);
 		var green = Math.cos(time*i*0.1);
 		var blue = Math.sin(time*i*0.1);
@@ -548,29 +546,29 @@ function render(){
 
 	}
 
-	centerpiece.rotateOnAxis(x_axis, 0.01);
-	centerpiece.rotateOnAxis(z_axis, 0.01);
+	centerpiece.rotateX(0.01);
+	centerpiece.rotateZ(0.01);
 	//console.log(centerpiece_light.position);
 
 	//centerpiece_light.translateZ(0.1 * Math.cos(time));
-	centerpiece_light.translateOnAxis(y_axis, 0.1 * Math.sin(time));
-	centerpiece_light.translateOnAxis(z_axis, 0.1 * Math.cos(time));
+	centerpiece_light.translateY(0.1 * Math.sin(time));
+	centerpiece_light.translateZ(0.1 * Math.cos(time));
 
 
 
-	centerpiece_light2.translateOnAxis(y_axis, 0.1 * Math.sin(time));
-	centerpiece_light2.translateOnAxis(x_axis, 0.1 * Math.cos(time));
+	centerpiece_light2.translateY(0.1 * Math.sin(time));
+	centerpiece_light2.translateX(0.1 * Math.cos(time));
 
-	centerpiece_light3.translateOnAxis(y_axis, 0.1 * Math.sin(time));
-	centerpiece_light3.translateOnAxis(x_axis, 0.1 * Math.cos(time));
-	centerpiece_light3.translateOnAxis(z_axis, 0.1 * Math.cos(time));
+	centerpiece_light3.translateY(0.1 * Math.sin(time));
+	centerpiece_light3.translateX(0.1 * Math.cos(time));
+	centerpiece_light3.translateZ(0.1 * Math.cos(time));
 
-	outer_light.translateOnAxis(x_axis, 0.1 * Math.sin(time));
-	tunnel_light.translateOnAxis(x_axis, 0.1 * -Math.sin(time));
+	outer_light.translateX(0.1 * Math.sin(time));
+	tunnel_light.translateX(0.1 * -Math.sin(time));
 
 
-	sphere.translateOnAxis(x_axis, 0.1 * Math.sin(time));
-	sphere.translateOnAxis(z_axis, 0.1 * Math.cos(time));
+	sphere.translateX(0.1 * Math.sin(time));
+	sphere.translateZ(0.1 * Math.cos(time));
 	//sphere.translateOnAxis(y_axis, 0.1 * Math.cos(time));
 
 
@@ -661,10 +659,10 @@ window.addEventListener('keypress', function(e){
 			break;
 		case 'q':
 			q_pressed = true;
-			camera.rotateOnAxis(z_axis, 0.2);
+			camera.rotateZ(0.2);
 		case 'e':
 			e_pressed = true;
-			camera.rotateOnAxis(z_axis, -0.1);
+			camera.rotateZ(-0.1);
 	}
 	//console.log(event.x);
 });
@@ -691,11 +689,11 @@ window.addEventListener('mousemove', function(e){
 
 
 
-	camera.rotateOnAxis(x_axis, vertical_rot);
+	camera.rotateX(vertical_rot);
 
 
 	// Horizontal rotation about up vector
-	camera.rotateOnAxis(y_axis, horizontal_rot);
+	camera.rotateY(horizontal_rot);
 
 	// Vertical rotation about side vector
 	//camera.getWorldDirection(target);
