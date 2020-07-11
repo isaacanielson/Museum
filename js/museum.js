@@ -27,6 +27,7 @@ var walls = [];
 var texts = [];
 var pictures = [];
 var black_frame = new THREE.MeshPhongMaterial({color:0x000000});
+var centerpiece_child;
 
 function init(){
 
@@ -127,8 +128,8 @@ function init(){
 	var observatory_y = 5.0;
 
 	var observatory_floor_position = new THREE.Vector3(150, -5, 10);
-	make_wall(150, 0.1, 150, observatory_floor_position, floor_material);
-
+	var observatory_floor = make_wall(150, 0.1, 150, observatory_floor_position, floor_material);
+	observatory_floor.receiveShadow = true;
 	for (i=0; i < 8; i++){
 		var observatory_wall_position = new THREE.Vector3(200, observatory_y, 10);
 		
@@ -191,24 +192,37 @@ function init(){
 
 
 	// Centerpiece 
-	var centerpiece_geometry = new THREE.TetrahedronGeometry(1, 0);
+	var centerpiece_geometry = new THREE.TetrahedronGeometry(2, 1);
 	var centerpiece_material = new THREE.MeshPhongMaterial(0xffffff);
 	centerpiece = new THREE.Mesh(centerpiece_geometry, centerpiece_material);
+	centerpiece.castShadow = true;
 	var centerpiece_position = new THREE.Vector3(135, 5, 10);
+
+	var centerpiece_child_geo = new THREE.TetrahedronGeometry(1, 0);
+	centerpiece_child = new THREE.Mesh(centerpiece_child_geo, centerpiece_material);
+	centerpiece_child.translateZ(5);
+	centerpiece_child.castShadow = true;
+	centerpiece.add(centerpiece_child);
+
 	centerpiece.translateX(centerpiece_position.x);
 	centerpiece.translateY(centerpiece_position.y);
 	centerpiece.translateZ(centerpiece_position.z);
+
+
+
 
 	scene.add(centerpiece);
 
 	// Centerpiece lighting
 	centerpiece_light = new THREE.PointLight(0xff0000, 1, 75);
+	centerpiece_light.castShadow = true;
 	centerpiece_light.position.set(centerpiece_position.x, 0, centerpiece_position.z);
 	var centerpiece_light_helper = new THREE.PointLightHelper(centerpiece_light);
 	scene.add(centerpiece_light);
 	scene.add(centerpiece_light_helper);
 
 	centerpiece_light2 = new THREE.PointLight(0x0000ff, 1, 75);
+	centerpiece_light2.castShadow = true;
 	centerpiece_light2.position.set(centerpiece_position.x, 0, centerpiece_position.z);
 	var centerpiece_light_helper2 = new THREE.PointLightHelper(centerpiece_light2);
 	scene.add(centerpiece_light2);
@@ -216,6 +230,7 @@ function init(){
 
 
 	centerpiece_light3 = new THREE.PointLight(0x00ff00, 1, 75);
+	centerpiece_light3.castShadow = true;
 	centerpiece_light3.position.set(centerpiece_position.x, 0, centerpiece_position.z);
 	var centerpiece_light_helper3 = new THREE.PointLightHelper(centerpiece_light3);
 	scene.add(centerpiece_light3);
@@ -360,6 +375,7 @@ function make_wall(width, height, depth, position, material, rotation=0){
 	new_wall.translateY(position.y);
 	new_wall.translateZ(position.z);
 	new_wall.rotateY(rotation);
+	new_wall.receiveShadow = true;
 	
 
 	scene.add(new_wall);
@@ -548,6 +564,8 @@ function render(){
 
 	centerpiece.rotateX(0.01);
 	centerpiece.rotateZ(0.01);
+
+	centerpiece_child.rotateX(-0.01);
 	//console.log(centerpiece_light.position);
 
 	//centerpiece_light.translateZ(0.1 * Math.cos(time));
@@ -686,23 +704,22 @@ window.addEventListener('mousemove', function(e){
 	var horizontal_rot = event.movementX * -0.005;
 	var vertical_rot = event.movementY * -0.005;
 	var target = new THREE.Vector3();
-
-
-
-	camera.rotateX(vertical_rot);
+	var lookAtpoint = new THREE.Vector3();
+	camera.position.clone(lookAtpoint);
 
 
 	// Horizontal rotation about up vector
-	camera.rotateY(horizontal_rot);
+	camera.rotateX(vertical_rot);
+
+
 
 	// Vertical rotation about side vector
-	//camera.getWorldDirection(target);
-	//console.log("World direction:");
-	//console.log(target);
-	//target.cross(y_axis);
+	camera.rotateY(horizontal_rot);
 
-	//console.log("Side vector");
-	//console.log(target);
+
+	//Used to maintain orientation of the upVec
+	camera.getWorldDirection(target);
+	camera.lookAt(camera.position.x + target.x, camera.position.y + target.y, camera.position.z + target.z);
 
 });
 
