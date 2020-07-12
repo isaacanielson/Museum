@@ -12,22 +12,31 @@ var scene = new THREE.Scene();
 
 var rotate_left = new THREE.Euler(0, Math.PI/2, 0, 'XYZ');
 var rotate_right = new THREE.Euler(0, -Math.PI/2, 0, 'XYZ');
-var renderer;
-var ceiling_hedrons;
-var centerpiece;
+var x_axis = new THREE.Vector3(1, 0, 0);
+var y_axis = new THREE.Vector3(0, 1, 0);
+var z_axis = new THREE.Vector3(0, 0, 1);
 var time = 0.0;
-var archway_rings;
-var centerpiece_light;
-var centerpiece_light2;
-var centerpiece_light3;
-var tunnel_light;
-var outer_light;
-var sphere;
+var wall_timer = 0.0;
+var renderer, ceiling_hedrons, centerpiece, archway_rings, sphere, centerpiece_child;
+var centerpiece_light, centerpiece_light2, centerpiece_light3, tunnel_light, outer_light;
 var walls = [];
 var texts = [];
 var pictures = [];
+var wall_tetras = [];
+var wall_tetras_width;
+var wall_tetras_height;
 var black_frame = new THREE.MeshPhongMaterial({color:0x000000});
-var centerpiece_child;
+
+var wall_tetra_curve = new THREE.SplineCurve([
+	new THREE.Vector2(0, 0),
+	new THREE.Vector2(10, 3),
+	new THREE.Vector2(20, 7),
+	new THREE.Vector2(30, 15),
+	new THREE.Vector2(40, 20)
+	]);
+
+var curve_points = wall_tetra_curve.getPoints(50);
+var tetra_wall_original_z = -50;
 
 function init(){
 
@@ -128,7 +137,7 @@ function init(){
 	var observatory_y = 5.0;
 
 	var observatory_floor_position = new THREE.Vector3(150, -5, 10);
-	var observatory_floor = make_wall(150, 0.1, 150, observatory_floor_position, floor_material);
+	var observatory_floor = make_wall(150, 0.1, 120, observatory_floor_position, floor_material);
 	observatory_floor.receiveShadow = true;
 	for (i=0; i < 8; i++){
 		var observatory_wall_position = new THREE.Vector3(200, observatory_y, 10);
@@ -157,8 +166,9 @@ function init(){
 			observatory_wall_position.z -= wall_offset + half_wall_width;
 			observatory_wall_position.x -= 3 * wall_offset + half_wall_width * 2; 
 		}
-
-		make_wall(0.2, 50, 50, observatory_wall_position, left_wall_material, -Math.PI/4 * i);
+		if (i != 6){
+			make_wall(0.2, 50, 50, observatory_wall_position, left_wall_material, -Math.PI/4 * i);
+		}
 	}
 
 	var white_position = new THREE.Vector3(199.8, observatory_y, 0);
@@ -195,13 +205,13 @@ function init(){
 	var centerpiece_geometry = new THREE.TetrahedronGeometry(2, 1);
 	var centerpiece_material = new THREE.MeshPhongMaterial(0xffffff);
 	centerpiece = new THREE.Mesh(centerpiece_geometry, centerpiece_material);
-	centerpiece.castShadow = true;
+	//centerpiece.castShadow = true;
 	var centerpiece_position = new THREE.Vector3(135, 5, 10);
 
 	var centerpiece_child_geo = new THREE.TetrahedronGeometry(1, 0);
 	centerpiece_child = new THREE.Mesh(centerpiece_child_geo, centerpiece_material);
 	centerpiece_child.translateZ(5);
-	centerpiece_child.castShadow = true;
+	//centerpiece_child.castShadow = true;
 	centerpiece.add(centerpiece_child);
 
 	centerpiece.translateX(centerpiece_position.x);
@@ -253,14 +263,13 @@ function init(){
 		ring.translateY(ring_position.y);
 		ring.translateZ(ring_position.z);
 		ring.rotateY(Math.PI/2);
-		console.log("rotatedy");
 		archway_rings.push(ring);
 		scene.add(archway_rings[i]);
 
 	}
 
 
-	//Dome (Currently only one-sided)
+	//Dome
 	var points = [];
 	for ( var i = 0; i < 10; i ++ ) {
 		points.push( new THREE.Vector2( Math.sin( i * 0.2 ) * 10 + 5, ( i - 5 ) * 2 ) );
@@ -270,17 +279,17 @@ function init(){
 	var geometry = new THREE.LatheGeometry( points );
 	var material = new THREE.MeshPhongMaterial( { color: 0x808080 } );
 	var lathe = new THREE.Mesh( geometry, left_wall_material );
+	var lathe_position = new THREE.Vector3(140, 65, 10);
 
-	lathe.translateX(140);
-	lathe.translateZ(10);
-	lathe.translateY(60);
+	lathe.translateX(lathe_position.x);
+	lathe.translateY(lathe_position.y);
+	lathe.translateZ(lathe_position.z);
 	lathe.rotateX(Math.PI);
 
 	lathe.material.side = THREE.DoubleSide;
-	//lathe.material.needsUpdate = true;
-
 
 	scene.add( lathe );
+
 
 	//Lighting
 
@@ -315,7 +324,6 @@ function init(){
 	scene.add(outer_helper);
 	var white_position = new THREE.Vector3(99.8, 3, 10);
 
-	//console.log(pictures[0]);
 
 	var sphere_geometry = new THREE.SphereGeometry(1, 3, 2);
 	var sphere_material = new THREE.MeshPhongMaterial(0xffffff);
@@ -332,6 +340,61 @@ function init(){
 	observatory_spotlight.target = sphere;
 
 	scene.add(observatory_spotlight);
+
+
+	// Folding wall made of tetrahedrons
+	wall_tetras_height = 23;
+	wall_tetras_width = 67;
+	for (i = 0; i < wall_tetras_width; i++){
+		for (j = 0; j < wall_tetras_height; j++){
+			var tetra_geometry = new THREE.TetrahedronGeometry(1, 0);
+			var tetra_material = new THREE.MeshPhongMaterial(0xffffff);
+			var tetra = new THREE.Mesh(tetra_geometry, tetra_material);
+
+			var tetra_position = new THREE.Vector3(113 + i * 0.8, -4 + j * 1.5, tetra_wall_original_z);
+			tetra.translateX(tetra_position.x);
+			tetra.translateY(tetra_position.y);
+			tetra.translateZ(tetra_position.z);
+
+			if (i % 2 == 0){
+				tetra.translateY(-0.5);
+				tetra.rotateZ(Math.PI/3);
+
+			}			
+
+			tetra.rotateX(Math.PI/6);
+			tetra.rotateY(Math.PI/4);
+
+			//tetra.lookAt(tetra_position.x, tetra_position.y, tetra_position.z + 1);
+
+			scene.add(tetra);
+			wall_tetras.push(tetra);
+
+		}
+	}
+
+	// Hallway
+	var hallway_floor_position = new THREE.Vector3(140, -5, -112.5);
+	var hallway_floor = make_wall(50, 0.1, 125, hallway_floor_position, floor_material);
+
+	var hallway_left_wall_position = new THREE.Vector3(114.5, 0, -100.3);
+	var hallway_left_wall = make_wall(0.1, 30, 100, hallway_left_wall_position, left_wall_material);
+
+	var hallway_right_wall_position = new THREE.Vector3(164.5, 0, -100.3);
+	var hallway_right_wall = make_wall(0.1, 30, 100, hallway_right_wall_position, left_wall_material);
+
+	var hallway_light = new THREE.PointLight(0xffffff, 1, 50);
+	var hallway_light_position = new THREE.Vector3(135, 7, -150);
+	hallway_light.translateX(hallway_light_position.x);
+	hallway_light.translateY(hallway_light_position.y);
+	hallway_light.translateZ(hallway_light_position.z);
+
+	var hallway_light2 = new THREE.PointLight(0xffffff, 1, 50);
+	var hallway_light2_position = new THREE.Vector3(135, 7, -75);
+	hallway_light2.translateX(hallway_light2_position.x);
+	hallway_light2.translateY(hallway_light2_position.y);
+	hallway_light2.translateZ(hallway_light2_position.z);
+	scene.add(hallway_light2);
 
 
 	camera.position.z = 5;
@@ -588,6 +651,67 @@ function render(){
 	sphere.translateX(0.1 * Math.sin(time));
 	sphere.translateZ(0.1 * Math.cos(time));
 	//sphere.translateOnAxis(y_axis, 0.1 * Math.cos(time));
+
+
+
+	if (camera.position.x > 100 && camera.position.x < 250 && camera.position.z < -25 && wall_timer <= 1){
+		for (var i = 0; i < wall_tetras_width; i++){
+			for (var j = 0; j < wall_tetras_height; j++){
+				//var trans_x = -0.3 * Math.cos(wall_timer);
+				//var trans_z = 0.3 * Math.cos(wall_timer);
+				var trans_y = 0;
+				var trans_z = 0;
+
+				var tetra = wall_tetras[i * wall_tetras_height + j];
+
+				if (wall_timer <= 1){
+					var curve_vector = wall_tetra_curve.getPoint(wall_timer);
+					
+					// Z offset is current position on curve (gives positive)
+					var z_offset = tetra_wall_original_z - tetra.position.z;
+
+					trans_z = curve_vector.x - z_offset;
+					trans_z = -1 * trans_z; 
+					trans_z = trans_z * 1.0/(1.0+j * 6.5);
+
+
+					// Y offset varies depending on row (gives negative)
+					var y_offset = (-4 + j * 1.5) - tetra.position.y;
+
+
+					y_offset = -1 * y_offset;
+					trans_y = curve_vector.y - y_offset;
+					trans_y = trans_y * 1.0/(1.0+j*8);	
+
+					if (j == 0){
+						//console.log(trans_y);
+					}
+
+
+
+					var original_rotation = new THREE.Euler();
+					original_rotation = tetra.rotation.clone();
+					var lookAtpoint = new THREE.Vector3();
+					lookAtpoint = tetra.position.clone();
+					lookAtpoint.z += 1;				
+
+					tetra.lookAt(lookAtpoint);
+
+					
+					wall_tetras[i * wall_tetras_height + j].translateY(trans_y);
+					wall_tetras[i * wall_tetras_height + j].translateZ(trans_z);
+	
+					
+
+					tetra.setRotationFromEuler(original_rotation);
+
+				}
+
+			
+			}
+		}
+		wall_timer += 0.01;
+	}
 
 
 	if (a_pressed){
