@@ -183,7 +183,7 @@ function init(){
 	ceiling_hedrons = [];
 	for (var i = 0; i < 10; i++){
 		for (var j = 0; j < 10; j++){
-			var hedron_geometry = new THREE.TetrahedronGeometry(1 + i%2, i%2);
+			var hedron_geometry = new THREE.TetrahedronBufferGeometry(1 + i%2, i%2);
 
 			var hedron_material = new THREE.MeshPhongMaterial(0x00ff);
 
@@ -202,13 +202,13 @@ function init(){
 
 
 	// Centerpiece 
-	var centerpiece_geometry = new THREE.TetrahedronGeometry(2, 1);
+	var centerpiece_geometry = new THREE.TetrahedronBufferGeometry(2, 1);
 	var centerpiece_material = new THREE.MeshPhongMaterial(0xffffff);
 	centerpiece = new THREE.Mesh(centerpiece_geometry, centerpiece_material);
 	//centerpiece.castShadow = true;
 	var centerpiece_position = new THREE.Vector3(135, 5, 10);
 
-	var centerpiece_child_geo = new THREE.TetrahedronGeometry(1, 0);
+	var centerpiece_child_geo = new THREE.TetrahedronBufferGeometry(1, 0);
 	centerpiece_child = new THREE.Mesh(centerpiece_child_geo, centerpiece_material);
 	centerpiece_child.translateZ(5);
 	//centerpiece_child.castShadow = true;
@@ -251,7 +251,7 @@ function init(){
 	// Archway
 	archway_rings = [];
 	for (var i = 0; i < 25; i++){
-		var ring_geometry = new THREE.RingGeometry(6, 15, 8);
+		var ring_geometry = new THREE.RingBufferGeometry(6, 15, 8);
 		var ring_color = new THREE.Color(0 + i * 1.0/25.0, 0 + i * 1.0/25.0, 0 + i * 1.0/50.0);
 		var ring_material = new THREE.MeshPhongMaterial({color:ring_color, side: THREE.DoubleSide});
 		var ring = new THREE.Mesh(ring_geometry, ring_material);
@@ -276,7 +276,7 @@ function init(){
 		points[i].x *= 4.75;
 		points[i].y *= 4.75;
 	}
-	var geometry = new THREE.LatheGeometry( points );
+	var geometry = new THREE.LatheBufferGeometry( points );
 	var material = new THREE.MeshPhongMaterial( { color: 0x808080 } );
 	var lathe = new THREE.Mesh( geometry, left_wall_material );
 	var lathe_position = new THREE.Vector3(140, 65, 10);
@@ -325,7 +325,7 @@ function init(){
 	var white_position = new THREE.Vector3(99.8, 3, 10);
 
 
-	var sphere_geometry = new THREE.SphereGeometry(1, 3, 2);
+	var sphere_geometry = new THREE.SphereBufferGeometry(1, 3, 2);
 	var sphere_material = new THREE.MeshPhongMaterial(0xffffff);
 	sphere = new THREE.Mesh(sphere_geometry, sphere_material);
 	var sphere_position = new THREE.Vector3(135, 100, 10);
@@ -347,7 +347,7 @@ function init(){
 	wall_tetras_width = 67;
 	for (i = 0; i < wall_tetras_width; i++){
 		for (j = 0; j < wall_tetras_height; j++){
-			var tetra_geometry = new THREE.TetrahedronGeometry(1, 0);
+			var tetra_geometry = new THREE.TetrahedronBufferGeometry(1, 0);
 			var tetra_material = new THREE.MeshPhongMaterial(0xffffff);
 			var tetra = new THREE.Mesh(tetra_geometry, tetra_material);
 
@@ -429,7 +429,7 @@ function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 // Makes a box with given w,h,d,pos,and material
 // Position is center of wall
 function make_wall(width, height, depth, position, material, rotation=0){
-	var wall = new THREE.BoxGeometry(width, height, depth, 100, 100);	
+	var wall = new THREE.BoxBufferGeometry(width, height, depth, 100, 100);	
 	var new_wall = new THREE.Mesh(wall, material);
 
 
@@ -437,8 +437,9 @@ function make_wall(width, height, depth, position, material, rotation=0){
 	new_wall.translateX(position.x);
 	new_wall.translateY(position.y);
 	new_wall.translateZ(position.z);
+	//new_wall.translate(position.x, position.y, position.z);
 	new_wall.rotateY(rotation);
-	new_wall.receiveShadow = true;
+	//new_wall.receiveShadow = true;
 	
 
 	scene.add(new_wall);
@@ -580,8 +581,6 @@ function load_picture(src, position, frame, orientation){
 		make_text(date, 0.1, 0.1, date_pos, black_frame, rotation);
 		//plate.add(texts[-1]);
 
-	
-
  	}
 
 function animate() {
@@ -629,9 +628,7 @@ function render(){
 	centerpiece.rotateZ(0.01);
 
 	centerpiece_child.rotateX(-0.01);
-	//console.log(centerpiece_light.position);
 
-	//centerpiece_light.translateZ(0.1 * Math.cos(time));
 	centerpiece_light.translateY(0.1 * Math.sin(time));
 	centerpiece_light.translateZ(0.1 * Math.cos(time));
 
