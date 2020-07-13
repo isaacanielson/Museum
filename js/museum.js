@@ -4,9 +4,9 @@
 // Gold Plate from: https://officialpsds.com/gold-plate-psd-724n5j
 // Helpful tutorials from https://threejsfundamentals.org/
 
-import { VRButton } from './three.js/examples/jsm/webxr/VRButton.js';
-import * as THREE from './three.js/src/THREE.js';
-import { BufferGeometryUtils } from './three.js/examples/jsm/utils/BufferGeometryUtils.js';
+import { VRButton } from './VRButton.js';
+//import * as THREE from './three.js';
+//import { BufferGeometryUtils } from './three.js/examples/jsm/utils/BufferGeometryUtils.js';
 //import { XRControllerModelFactory} from './XRControllerModelFactory.js'
 
 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
