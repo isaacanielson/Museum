@@ -4,11 +4,14 @@
 // Gold Plate from: https://officialpsds.com/gold-plate-psd-724n5j
 // Helpful tutorials from https://threejsfundamentals.org/
 
-import { VRButton } from './VRButton.js';
+import { VRButton } from './three.js/examples/jsm/webxr/VRButton.js';
+import * as THREE from './three.js/src/THREE.js';
+import { BufferGeometryUtils } from './three.js/examples/jsm/utils/BufferGeometryUtils.js';
+//import { XRControllerModelFactory} from './XRControllerModelFactory.js'
 
-var upVec = new THREE.Vector3(0, 1, 0);
 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 var scene = new THREE.Scene();
+
 
 var rotate_left = new THREE.Euler(0, Math.PI/2, 0, 'XYZ');
 var rotate_right = new THREE.Euler(0, -Math.PI/2, 0, 'XYZ');
@@ -27,6 +30,11 @@ var wall_tetras_width;
 var wall_tetras_height;
 var black_frame = new THREE.MeshPhongMaterial({color:0x000000});
 
+var original_rotation = new THREE.Euler();
+var lookAtpoint = new THREE.Vector3();
+
+//var controller1, controller2;
+
 var wall_tetra_curve = new THREE.SplineCurve([
 	new THREE.Vector2(0, 0),
 	new THREE.Vector2(10, 3),
@@ -44,110 +52,112 @@ function init(){
 
 	renderer = new THREE.WebGLRenderer({antialias:true});
 	renderer.shadowMap.enabled = true;
+	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	renderer.xr.enabled = true;
 	document.body.appendChild( renderer.domElement );
 	document.body.appendChild(VRButton.createButton(renderer));
 
-	var wall_color = 0xffffff;
+	let wall_color = 0xffffff;
 
 
 	// Adds walls and pictures to starting room
-	var wall_y = 5.0;
+	let wall_y = 5.0;
 
-	var left_wall_material = new THREE.MeshPhongMaterial({color: 0xffffff});
-	var left_wall_position = new THREE.Vector3(-10.0, wall_y, 0.0);
+	let left_wall_material = new THREE.MeshPhongMaterial({color: 0xffffff});
+	let left_wall_position = new THREE.Vector3(-10.0, wall_y, 0.0);
 	make_wall(0.2, 20.0, 100.0, left_wall_position, left_wall_material);
 
-	var front_wall_position = new THREE.Vector3(0.0, wall_y, -50);
+	let front_wall_position = new THREE.Vector3(0.0, wall_y, -50);
 	make_wall(50.0, 20.0, 0.2, front_wall_position, left_wall_material);
 
-	var right_wall_position = new THREE.Vector3(25.0, wall_y, -25.0);
+	let right_wall_position = new THREE.Vector3(25.0, wall_y, -25.0);
 	make_wall(0.2, 20.0, 50.0, right_wall_position, left_wall_material);
 
-	var right_wall_position2 = new THREE.Vector3(25.0, wall_y, 35.0);
+	let right_wall_position2 = new THREE.Vector3(25.0, wall_y, 35.0);
 	make_wall(0.2, 20.0, 30.0, right_wall_position2, left_wall_material);
 
-	var back_wall_position = new THREE.Vector3(0, wall_y, 50.0);
+	let back_wall_position = new THREE.Vector3(0, wall_y, 50.0);
 	make_wall(50.0, 20.0, 0.2, back_wall_position, left_wall_material)
 
 
-	var floor_texture = new THREE.TextureLoader().load('resources/floor2.jpg');
+	let floor_texture = new THREE.TextureLoader().load('resources/floor2.jpg');
 	floor_texture.wrapS = THREE.MirroredRepeatWrapping;
 	floor_texture.wrapT = THREE.MirroredRepeatWrapping;
 	floor_texture.repeat.set(5, 5);
-	var floor_material = new THREE.MeshPhongMaterial({map:floor_texture});
-	var floor_position = new THREE.Vector3(0, -5, 0);
+	let floor_material = new THREE.MeshPhongMaterial({map:floor_texture});
+	let floor_position = new THREE.Vector3(0, -5, 0);
 	make_wall(50.0, 0.1, 100.0, floor_position, floor_material);
 
 
 
 
-	var gold_frame = new THREE.MeshPhongMaterial({color:0xffd700});
-	var silver_frame = new THREE.MeshPhongMaterial({color:0xC0C0C0});
-	var red_frame = new THREE.MeshPhongMaterial({color:0xff0000});
-	var blue_frame = new THREE.MeshPhongMaterial({color:0x0000ff});
-	var black_frame = new THREE.MeshPhongMaterial({color:0x000000});
+	let gold_frame = new THREE.MeshPhongMaterial({color:0xffd700});
+	let silver_frame = new THREE.MeshPhongMaterial({color:0xC0C0C0});
+	let red_frame = new THREE.MeshPhongMaterial({color:0xff0000});
+	let blue_frame = new THREE.MeshPhongMaterial({color:0x0000ff});
+	let black_frame = new THREE.MeshPhongMaterial({color:0x000000});
 
 
 
-	var figures_position = new THREE.Vector3(-9.8, 3, 0);
-	var figures = load_picture('art/figures.jpg', figures_position, gold_frame, "x+");
-	var figures_plate_position = figures_position.clone();
+	let figures_position = new THREE.Vector3(-9.8, 3, 0);
+	let figures = load_picture('art/figures.jpg', figures_position, gold_frame, "x+");
+	let figures_plate_position = figures_position.clone();
 	figures_plate_position.y -= 4.5;
  	make_plate("Red and yellow forms", "04/04/2020", figures_plate_position, Math.PI/2);
 
 
-	var misunderstood_position = new THREE.Vector3(-9.8, 3, 15.0);
-	var misunderstood = load_picture('art/misunderstood.jpg', misunderstood_position, black_frame, "x+");
+	let misunderstood_position = new THREE.Vector3(-9.8, 3, 15.0);
+	let misunderstood = load_picture('art/misunderstood.jpg', misunderstood_position, black_frame, "x+");
 
-	var mushroom_position = new THREE.Vector3(-9.8, 3, -15.0);
-	var mushroom = load_picture('art/mushroom.jpg', mushroom_position, black_frame, "x+");
+	let mushroom_position = new THREE.Vector3(-9.8, 3, -15.0);
+	let mushroom = load_picture('art/mushroom.jpg', mushroom_position, black_frame, "x+");
 
-	var needle_position = new THREE.Vector3(-9.8, 3, 30);
-	var needle = load_picture('art/needle.jpg', needle_position, blue_frame, "x+");
+	let needle_position = new THREE.Vector3(-9.8, 3, 30);
+	let needle = load_picture('art/needle.jpg', needle_position, blue_frame, "x+");
 
-	var slouched_position = new THREE.Vector3(-9.8, 3, -30);
-	var slouched = load_picture('art/slouched.jpg', slouched_position, red_frame, "x+");
+	let slouched_position = new THREE.Vector3(-9.8, 3, -30);
+	let slouched = load_picture('art/slouched.jpg', slouched_position, red_frame, "x+");
 
-	var mask_position = new THREE.Vector3(0, 3, -49.8);
-	var mask = load_picture('art/mask.jpg', mask_position, black_frame, "z+");
+	let mask_position = new THREE.Vector3(0, 3, -49.8);
+	let mask = load_picture('art/mask.jpg', mask_position, black_frame, "z+");
 
-	var anatomy_position = new THREE.Vector3(15.0, 3, -49.8);
-	var anatomy = load_picture('art/anatomy.jpg', anatomy_position, black_frame, "z+");
+	let anatomy_position = new THREE.Vector3(15.0, 3, -49.8);
+	let anatomy = load_picture('art/anatomy.jpg', anatomy_position, black_frame, "z+");
 
-	var nude_position = new THREE.Vector3(24.8, 3, -30.0);
-	var nude = load_picture('art/nude.jpg', nude_position, black_frame, "x-");
+	let nude_position = new THREE.Vector3(24.8, 3, -30.0);
+	let nude = load_picture('art/nude.jpg', nude_position, black_frame, "x-");
 
-	var stretch_position = new THREE.Vector3(24.8, 3, -15.0);
-	var stretch = load_picture('art/stretch.jpg', stretch_position, black_frame, "x-");
+	let stretch_position = new THREE.Vector3(24.8, 3, -15.0);
+	let stretch = load_picture('art/stretch.jpg', stretch_position, black_frame, "x-");
 
-	var bach_position = new THREE.Vector3(24.8, 3, 35.0);
-	var bach = load_picture('art/bach.jpg', bach_position, black_frame, "x-");
+	let bach_position = new THREE.Vector3(24.8, 3, 35.0);
+	let bach = load_picture('art/bach.jpg', bach_position, black_frame, "x-");
 
-	var comic_position = new THREE.Vector3(0.0, 3, 49.8);
-	var comic = load_picture('art/comic.jpg', comic_position, black_frame, "z-");
+	let comic_position = new THREE.Vector3(0.0, 3, 49.8);
+	let comic = load_picture('art/comic.jpg', comic_position, black_frame, "z-");
 
-	var shapes_position = new THREE.Vector3(15.0, 3, 49.8);
-	var shapes = load_picture('art/shapes.jpg', shapes_position, blue_frame, "z-");
+	let shapes_position = new THREE.Vector3(15.0, 3, 49.8);
+	let shapes = load_picture('art/shapes.jpg', shapes_position, blue_frame, "z-");
 
 
 
 	// Observatory
-	var observatory_y = 5.0;
+	let observatory_y = 5.0;
 
-	var observatory_floor_position = new THREE.Vector3(150, -5, 10);
-	var observatory_floor = make_wall(150, 0.1, 120, observatory_floor_position, floor_material);
+	let observatory_floor_position = new THREE.Vector3(150, -5, 10);
+	let observatory_floor = make_wall(150, 0.1, 120, observatory_floor_position, floor_material);
 	observatory_floor.receiveShadow = true;
+	var i;
 	for (i=0; i < 8; i++){
-		var observatory_wall_position = new THREE.Vector3(200, observatory_y, 10);
+		let observatory_wall_position = new THREE.Vector3(200, observatory_y, 10);
 		
 		// Octagon
 		// Center of wall is position
 		// Width of 50
 		// P2 = initial x + w/2 + sqrt((w/2)^2 / 2) 
-		var half_wall_width = 25.0;
-		var wall_offset = Math.sqrt(((half_wall_width) * (half_wall_width)) / 2.0);
+		let half_wall_width = 25.0;
+		let wall_offset = Math.sqrt(((half_wall_width) * (half_wall_width)) / 2.0);
 
 		if (i < 3 && i > 0){
 			observatory_wall_position.z += i * wall_offset + half_wall_width;
@@ -171,25 +181,25 @@ function init(){
 		}
 	}
 
-	var white_position = new THREE.Vector3(199.8, observatory_y, 0);
-	var white = load_picture('art/2020_06_11_white_memorial_chapel.jpg', white_position, silver_frame, "x-");
+	let white_position = new THREE.Vector3(199.8, observatory_y, 0);
+	let white = load_picture('art/2020_06_11_white_memorial_chapel.jpg', white_position, silver_frame, "x-");
 
-	var akward_position = new THREE.Vector3(199.8, observatory_y, 15);
-	var akward = load_picture('Designs/Designs/akward.jpeg', akward_position, silver_frame, "x-");
+	let akward_position = new THREE.Vector3(199.8, observatory_y, 15);
+	let akward = load_picture('Designs/Designs/akward.jpeg', akward_position, silver_frame, "x-");
 	
 
 
 	// Ceiling effect
 	ceiling_hedrons = [];
-	for (var i = 0; i < 10; i++){
-		for (var j = 0; j < 10; j++){
-			var hedron_geometry = new THREE.TetrahedronBufferGeometry(1 + i%2, i%2);
+	for (let i = 0; i < 10; i++){
+		for (let j = 0; j < 10; j++){
+			let hedron_geometry = new THREE.TetrahedronBufferGeometry(1 + i%2, i%2);
 
-			var hedron_material = new THREE.MeshPhongMaterial(0x00ff);
+			let hedron_material = new THREE.MeshPhongMaterial(0x00ff);
 
-			var new_hedron = new THREE.Mesh(hedron_geometry, hedron_material);
+			let new_hedron = new THREE.Mesh(hedron_geometry, hedron_material);
 
-			var hedron_position = new THREE.Vector3(-50 + i*10, 20, -50 + j*10);
+			let hedron_position = new THREE.Vector3(-50 + i*10, 20, -50 + j*10);
 
 			new_hedron.translateX(hedron_position.x);
 			new_hedron.translateY(hedron_position.y);
@@ -202,13 +212,13 @@ function init(){
 
 
 	// Centerpiece 
-	var centerpiece_geometry = new THREE.TetrahedronBufferGeometry(2, 1);
-	var centerpiece_material = new THREE.MeshPhongMaterial(0xffffff);
+	let centerpiece_geometry = new THREE.TetrahedronBufferGeometry(2, 1);
+	let centerpiece_material = new THREE.MeshPhongMaterial(0xffffff);
 	centerpiece = new THREE.Mesh(centerpiece_geometry, centerpiece_material);
 	//centerpiece.castShadow = true;
-	var centerpiece_position = new THREE.Vector3(135, 5, 10);
+	let centerpiece_position = new THREE.Vector3(135, 5, 10);
 
-	var centerpiece_child_geo = new THREE.TetrahedronBufferGeometry(1, 0);
+	let centerpiece_child_geo = new THREE.TetrahedronBufferGeometry(1, 0);
 	centerpiece_child = new THREE.Mesh(centerpiece_child_geo, centerpiece_material);
 	centerpiece_child.translateZ(5);
 	//centerpiece_child.castShadow = true;
@@ -227,14 +237,14 @@ function init(){
 	centerpiece_light = new THREE.PointLight(0xff0000, 1, 75);
 	centerpiece_light.castShadow = true;
 	centerpiece_light.position.set(centerpiece_position.x, 0, centerpiece_position.z);
-	var centerpiece_light_helper = new THREE.PointLightHelper(centerpiece_light);
+	let centerpiece_light_helper = new THREE.PointLightHelper(centerpiece_light);
 	scene.add(centerpiece_light);
 	scene.add(centerpiece_light_helper);
 
 	centerpiece_light2 = new THREE.PointLight(0x0000ff, 1, 75);
 	centerpiece_light2.castShadow = true;
 	centerpiece_light2.position.set(centerpiece_position.x, 0, centerpiece_position.z);
-	var centerpiece_light_helper2 = new THREE.PointLightHelper(centerpiece_light2);
+	let centerpiece_light_helper2 = new THREE.PointLightHelper(centerpiece_light2);
 	scene.add(centerpiece_light2);
 	scene.add(centerpiece_light_helper2);
 
@@ -242,7 +252,7 @@ function init(){
 	centerpiece_light3 = new THREE.PointLight(0x00ff00, 1, 75);
 	centerpiece_light3.castShadow = true;
 	centerpiece_light3.position.set(centerpiece_position.x, 0, centerpiece_position.z);
-	var centerpiece_light_helper3 = new THREE.PointLightHelper(centerpiece_light3);
+	let centerpiece_light_helper3 = new THREE.PointLightHelper(centerpiece_light3);
 	scene.add(centerpiece_light3);
 	scene.add(centerpiece_light_helper3);
 
@@ -250,14 +260,14 @@ function init(){
 
 	// Archway
 	archway_rings = [];
-	for (var i = 0; i < 25; i++){
-		var ring_geometry = new THREE.RingBufferGeometry(6, 15, 8);
-		var ring_color = new THREE.Color(0 + i * 1.0/25.0, 0 + i * 1.0/25.0, 0 + i * 1.0/50.0);
-		var ring_material = new THREE.MeshPhongMaterial({color:ring_color, side: THREE.DoubleSide});
-		var ring = new THREE.Mesh(ring_geometry, ring_material);
+	for (let i = 0; i < 25; i++){
+		let ring_geometry = new THREE.RingBufferGeometry(6, 15, 8);
+		let ring_color = new THREE.Color(0 + i * 1.0/25.0, 0 + i * 1.0/25.0, 0 + i * 1.0/50.0);
+		let ring_material = new THREE.MeshPhongMaterial({color:ring_color, side: THREE.DoubleSide});
+		let ring = new THREE.Mesh(ring_geometry, ring_material);
 
 
-		var ring_position = new THREE.Vector3(30 + i * 2, 2, 10);
+		let ring_position = new THREE.Vector3(30 + i * 2, 2, 10);
 
 		ring.translateX(ring_position.x);
 		ring.translateY(ring_position.y);
@@ -270,16 +280,16 @@ function init(){
 
 
 	//Dome
-	var points = [];
-	for ( var i = 0; i < 10; i ++ ) {
+	let points = [];
+	for ( let i = 0; i < 10; i ++ ) {
 		points.push( new THREE.Vector2( Math.sin( i * 0.2 ) * 10 + 5, ( i - 5 ) * 2 ) );
 		points[i].x *= 4.75;
 		points[i].y *= 4.75;
 	}
-	var geometry = new THREE.LatheBufferGeometry( points );
-	var material = new THREE.MeshPhongMaterial( { color: 0x808080 } );
-	var lathe = new THREE.Mesh( geometry, left_wall_material );
-	var lathe_position = new THREE.Vector3(140, 65, 10);
+	let geometry = new THREE.LatheBufferGeometry( points );
+	let material = new THREE.MeshPhongMaterial( { color: 0x808080 } );
+	let lathe = new THREE.Mesh( geometry, left_wall_material );
+	let lathe_position = new THREE.Vector3(140, 65, 10);
 
 	lathe.translateX(lathe_position.x);
 	lathe.translateY(lathe_position.y);
@@ -293,49 +303,49 @@ function init(){
 
 	//Lighting
 
-	var light = new THREE.PointLight(0xffffff, 1, 25);
+	let light = new THREE.PointLight(0xffffff, 1, 25);
 	light.position.set(10, 10, 0);
 	scene.add(light);
-	var helper = new THREE.PointLightHelper(light);
-	scene.add(helper);
-	var light2 = new THREE.PointLight(0xffffff, 1, 50);
+	let helper = new THREE.PointLightHelper(light);
+	//scene.add(helper);
+	let light2 = new THREE.PointLight(0xffffff, 1, 50);
 	light2.position.set(10, 10, -30);
 	scene.add(light2);
-	var helper2 = new THREE.PointLightHelper(light2);
-	scene.add(helper2);
+	let helper2 = new THREE.PointLightHelper(light2);
+	//scene.add(helper2);
 
-	var light3 = new THREE.PointLight(0xffffff, 1, 50);
+	let light3 = new THREE.PointLight(0xffffff, 1, 50);
 	light3.position.set(10, 10, 30);
 	scene.add(light3);
-	var helper3 = new THREE.PointLightHelper(light3);
-	scene.add(helper3);
+	let helper3 = new THREE.PointLightHelper(light3);
+	//scene.add(helper3);
 
 	tunnel_light = new THREE.PointLight(0xffffff, 1, 25);
 	tunnel_light.position.set(50, -5, 10);
 	scene.add(tunnel_light);
-	var tunnel_helper = new THREE.PointLightHelper(tunnel_light);
-	scene.add(tunnel_helper);
+	let tunnel_helper = new THREE.PointLightHelper(tunnel_light);
+	//scene.add(tunnel_helper);
 
 
 	outer_light = new THREE.PointLight(0xffffff, 1, 25);
 	outer_light.position.set(50, 10, 10);
 	scene.add(outer_light);
-	var outer_helper = new THREE.PointLightHelper(outer_light);
-	scene.add(outer_helper);
-	var white_position = new THREE.Vector3(99.8, 3, 10);
+	let outer_helper = new THREE.PointLightHelper(outer_light);
+	//scene.add(outer_helper);
+	white_position = new THREE.Vector3(99.8, 3, 10);
 
 
-	var sphere_geometry = new THREE.SphereBufferGeometry(1, 3, 2);
-	var sphere_material = new THREE.MeshPhongMaterial(0xffffff);
+	let sphere_geometry = new THREE.SphereBufferGeometry(1, 3, 2);
+	let sphere_material = new THREE.MeshPhongMaterial(0xffffff);
 	sphere = new THREE.Mesh(sphere_geometry, sphere_material);
-	var sphere_position = new THREE.Vector3(135, 100, 10);
+	let sphere_position = new THREE.Vector3(135, 100, 10);
 	sphere.translateX(sphere_position.x);
 	sphere.translateY(sphere_position.y);
 	sphere.translateZ(sphere_position.z);
 
 	scene.add(sphere);
 
-	var observatory_spotlight = new THREE.SpotLight(0xffffff, 1, 100, Math.PI/8);
+	let observatory_spotlight = new THREE.SpotLight(0xffffff, 1, 100, Math.PI/8);
 	observatory_spotlight.position.set(centerpiece_position.x, 20, centerpiece_position.z);
 	observatory_spotlight.target = sphere;
 
@@ -345,13 +355,13 @@ function init(){
 	// Folding wall made of tetrahedrons
 	wall_tetras_height = 23;
 	wall_tetras_width = 67;
-	for (i = 0; i < wall_tetras_width; i++){
-		for (j = 0; j < wall_tetras_height; j++){
-			var tetra_geometry = new THREE.TetrahedronBufferGeometry(1, 0);
-			var tetra_material = new THREE.MeshPhongMaterial(0xffffff);
-			var tetra = new THREE.Mesh(tetra_geometry, tetra_material);
+	for (let i = 0; i < wall_tetras_width; i++){
+		for (let j = 0; j < wall_tetras_height; j++){
+			let tetra_geometry = new THREE.TetrahedronBufferGeometry(1, 0);
+			let tetra_material = new THREE.MeshPhongMaterial(0xffffff);
+			let tetra = new THREE.Mesh(tetra_geometry, tetra_material);
 
-			var tetra_position = new THREE.Vector3(113 + i * 0.8, -4 + j * 1.5, tetra_wall_original_z);
+			let tetra_position = new THREE.Vector3(113 + i * 0.8, -4 + j * 1.5, tetra_wall_original_z);
 			tetra.translateX(tetra_position.x);
 			tetra.translateY(tetra_position.y);
 			tetra.translateZ(tetra_position.z);
@@ -374,32 +384,109 @@ function init(){
 	}
 
 	// Hallway
-	var hallway_floor_position = new THREE.Vector3(140, -5, -112.5);
-	var hallway_floor = make_wall(50, 0.1, 125, hallway_floor_position, floor_material);
+	let hallway_floor_position = new THREE.Vector3(140, -5, -112.5);
+	let hallway_floor = make_wall(50, 0.1, 125, hallway_floor_position, floor_material);
 
-	var hallway_left_wall_position = new THREE.Vector3(114.5, 0, -100.3);
-	var hallway_left_wall = make_wall(0.1, 30, 100, hallway_left_wall_position, left_wall_material);
+	let hallway_left_wall_position = new THREE.Vector3(114.5, 0, -100.3);
+	let hallway_left_wall = make_wall(0.1, 30, 100, hallway_left_wall_position, left_wall_material);
 
-	var hallway_right_wall_position = new THREE.Vector3(164.5, 0, -100.3);
-	var hallway_right_wall = make_wall(0.1, 30, 100, hallway_right_wall_position, left_wall_material);
+	let hallway_right_wall_position = new THREE.Vector3(164.5, 0, -100.3);
+	let hallway_right_wall = make_wall(0.1, 30, 100, hallway_right_wall_position, left_wall_material);
 
-	var hallway_light = new THREE.PointLight(0xffffff, 1, 50);
-	var hallway_light_position = new THREE.Vector3(135, 7, -150);
+	let hallway_light = new THREE.PointLight(0xffffff, 1, 50);
+	let hallway_light_position = new THREE.Vector3(135, 7, -150);
 	hallway_light.translateX(hallway_light_position.x);
 	hallway_light.translateY(hallway_light_position.y);
 	hallway_light.translateZ(hallway_light_position.z);
 
-	var hallway_light2 = new THREE.PointLight(0xffffff, 1, 50);
-	var hallway_light2_position = new THREE.Vector3(135, 7, -75);
+	let hallway_light2 = new THREE.PointLight(0xffffff, 1, 50);
+	let hallway_light2_position = new THREE.Vector3(135, 7, -75);
 	hallway_light2.translateX(hallway_light2_position.x);
 	hallway_light2.translateY(hallway_light2_position.y);
 	hallway_light2.translateZ(hallway_light2_position.z);
 	scene.add(hallway_light2);
 
 
-	camera.position.z = 5;
-	var time = 0.0;
 
+	// Example lamp
+
+	//let lamp_position = new THREE.Vector3(-9.8, 7.5, 0);
+	//make_lamp(lamp_position);
+
+
+	camera.position.z = 5;
+	time = 0.0;
+
+}
+
+function CustomLampCurve(scale){
+	THREE.Curve.call( this );
+
+	this.scale = ( scale === undefined ) ? 1 : scale;
+}
+
+function make_lamp(position, rotation=0){
+
+	//let lamp_geometries = [];
+
+	let lamp = new THREE.Group();
+	let lamp_material = new THREE.MeshPhongMaterial(0xffffff);
+	lamp_material.side =THREE.DoubleSide;
+	let lamp_base_geo = new THREE.BoxBufferGeometry(0.1, 0.5, 2, 2, 2);
+	//lamp_geometries.push(lamp_base_geo);
+	//let lamp_base = new THREE.Mesh(lamp_base_geo, lamp_material);
+
+	let lamp_head_geo = new THREE.CylinderGeometry(0.5, 0.5, 1, 8, 1, false, 0, 4.5);
+	
+	lamp_head_geo.rotateX(Math.PI/2);
+
+	lamp_head_geo.translate(2.5, 0.7, 0);
+
+
+	CustomLampCurve.prototype = Object.create(THREE.Curve.prototype);
+	CustomLampCurve.prototype.constructor = CustomLampCurve;
+
+	CustomLampCurve.prototype.getPoint = function(t){
+		let tx = t * 2.5;
+
+		let ty = 1.5 * Math.sin(3 * Math.PI / 4 * t);
+		let tz = 0;
+
+		return new THREE.Vector3(tx, ty, tz).multiplyScalar(this.scale);
+	}
+	
+	let lamp_path = new CustomLampCurve(1);
+
+	let lamp_connector_geo = new THREE.TubeBufferGeometry(lamp_path, 20, 0.2, 8, false);
+
+
+
+	//lamp_connector_geo.rotateX(-Math.PI/2);
+
+	let lamp_connector = new THREE.Mesh(lamp_connector_geo, lamp_material);
+	
+	let lamp_head = new THREE.Mesh(lamp_head_geo, lamp_material);
+	let lamp_base = new THREE.Mesh(lamp_base_geo, lamp_material);
+
+	lamp.add(lamp_head);
+	lamp.add(lamp_base);
+	lamp.add(lamp_connector);
+	//lamp_geometries.push(lamp_head_geo);
+
+	//let lamp = BufferGeometryUtils.mergeBufferGeometries(lamp_geometries);
+	//let lamp_head = new THREE.Mesh(lamp_head_geo, lamp_material);
+	//let lamp_position = position
+
+
+
+	lamp.translateX(position.x);
+	lamp.translateY(position.y);
+	lamp.translateZ(position.z);
+
+	lamp.rotateY(rotation);
+
+	//lamp.material.side = THREE.DoubleSide;
+	scene.add(lamp);
 }
 
 function resizeRendererToDisplaySize(renderer) {
@@ -416,11 +503,11 @@ function resizeRendererToDisplaySize(renderer) {
 }
 
 function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
-	var wall_geometry = new THREE.BufferGeometry();
+	let wall_geometry = new THREE.BufferGeometry();
 
-	var wall_material = new THREE.MeshPhongMaterial({color: 0xffffff, side: THREE.DoubleSide});
+	let wall_material = new THREE.MeshPhongMaterial({color: 0xffffff, side: THREE.DoubleSide});
 
-	var plane = new THREE.Mesh(wall_geometry, wall_material);
+	let plane = new THREE.Mesh(wall_geometry, wall_material);
 	scene.add(plane);
 
 }
@@ -429,8 +516,8 @@ function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 // Makes a box with given w,h,d,pos,and material
 // Position is center of wall
 function make_wall(width, height, depth, position, material, rotation=0){
-	var wall = new THREE.BoxBufferGeometry(width, height, depth, 100, 100);	
-	var new_wall = new THREE.Mesh(wall, material);
+	let wall = new THREE.BoxBufferGeometry(width, height, depth, 2, 2);	
+	let new_wall = new THREE.Mesh(wall, material);
 
 
 
@@ -449,10 +536,10 @@ function make_wall(width, height, depth, position, material, rotation=0){
 
 function make_picture(position, picture, frame, aspect_ratio, orientation){
 
-	var height = 7.5;
-	var width = height * aspect_ratio;
-	var frame_position = position;
-	var to_return;
+	let height = 7.5;
+	let width = height * aspect_ratio;
+	let frame_position = position;
+	let to_return;
 	if (orientation == "x+"){
 		to_return = make_wall(0.02, height, width, position, picture);
 		frame_position.x -= 0.1;
@@ -477,37 +564,51 @@ function make_picture(position, picture, frame, aspect_ratio, orientation){
 }
 // Loads a picture with a given source, position, frame, and orientation (i.e. "z+")
 function load_picture(src, position, frame, orientation){
-	var new_img = new Image();
+	let new_img = new Image();
 	new_img.onload = function(){
-		var width = this.width;
-		var height = this.height;
-		var aspect_ratio = width/height;
-		var texture = new THREE.TextureLoader().load(this.src);
+		let width = this.width;
+		let height = this.height;
+		let aspect_ratio = width/height;
+		let texture = new THREE.TextureLoader().load(this.src);
 
-		var material = new THREE.MeshPhongMaterial({map:texture});
-		//var position = new THREE.Vector3(-9.8, 0, 7.5);
-		var pic = make_picture(position, material, frame, aspect_ratio, orientation);
+		let material = new THREE.MeshPhongMaterial({map:texture});
+		//let position = new THREE.Vector3(-9.8, 0, 7.5);
+		let pic = make_picture(position, material, frame, aspect_ratio, orientation);
 		//console.log(pic);
 
-		var spotLight = new THREE.SpotLight(0xffffff, 1, 10, Math.PI/4);
+		let spotLight = new THREE.SpotLight(0xffffff, 0.9, 10, Math.PI/3);
+		let spotLight_position = pic.position.clone();
+		spotLight_position.y += 5.0;
+		
 		if (orientation == "x+"){
-			spotLight.position.set(pic.position.x + 2.5, pic.position.y + 7.5, pic.position.z);
+			make_lamp(spotLight_position);
+			spotLight_position.x += 2.5;
+			
 		}
 		else if (orientation == "x-"){
-			spotLight.position.set(pic.position.x - 2.5, pic.position.y + 7.5, pic.position.z);
+			make_lamp(spotLight_position, Math.PI);
+			spotLight_position.x -= 2.5;
+			
 		}
 		else if (orientation == "z+"){
-			spotLight.position.set(pic.position.x, pic.position.y + 7.5, pic.position.z + 2.5);
+			make_lamp(spotLight_position, -Math.PI/2);
+			spotLight_position.z += 2.5;
+			
 		}
 		else if (orientation == "z-"){
-			spotLight.position.set(pic.position.x, pic.position.y + 7.5, pic.position.z - 2.5);
+			make_lamp(spotLight_position, Math.PI/2);
+			spotLight_position.z -= 2.5;
+			
 		}
 
+		spotLight.position.set(spotLight_position.x, spotLight_position.y, spotLight_position.z);
+		
 		spotLight.target = pic;
 		//console.log(spotLight.target);
-		var spotLighthelper = new THREE.SpotLightHelper(spotLight);
+		let spotLighthelper = new THREE.SpotLightHelper(spotLight);
+		spotLighthelper.target = pic;
 		scene.add(spotLight);
-		//scene.add(spotLighthelper);
+		//ascene.add(spotLighthelper);
 		
 	}
 	new_img.src = src;
@@ -533,14 +634,14 @@ function load_picture(src, position, frame, orientation){
 	        height: height,
 	        curveSegments: 12,
 	        bevelEnabled: false,
-	        bevelThickness: 0.15,
-	        bevelSize: .3,
-	        bevelSegments: 5,
+	        bevelThickness: 0.001,
+	        bevelSize: .01,
+	        bevelSegments: 20,
 	      });
 
 	 	
 
-	 		var text_mesh = new THREE.Mesh(geometry, material);
+	 		let text_mesh = new THREE.Mesh(geometry, material);
 
 	 		geometry.computeBoundingBox();
 	 		geometry.boundingBox.getCenter(text_mesh.position).multiplyScalar(-1);
@@ -553,7 +654,7 @@ function load_picture(src, position, frame, orientation){
 	 		parent.rotateY(rotation);
 	 		//parent.scale = new THREE.Vector3(0.5, 0.5, 0.5);
 
-	 		//var scale = new THREE.Matrix4();
+	 		//let scale = new THREE.Matrix4();
 	 		//scale.makeScale(0.1, 0.1, 0.1);
 	 		//geometry.computeBoundingBox();
 	 		//parent.applyMatrix4(scale);
@@ -567,15 +668,15 @@ function load_picture(src, position, frame, orientation){
  	// Makes a nameplate for a given piece
  	// TODO: Make Text Wrapping work for a given plate size
  	function make_plate(title, date, position, rotation=0){
-		var plate_texture = new THREE.TextureLoader().load('resources/gold_plate.png');
-		var plate_material = new THREE.MeshPhongMaterial({map:plate_texture});
-		var plate = make_wall(2, 1, 0.05, position, plate_material, rotation);
+		let plate_texture = new THREE.TextureLoader().load('resources/gold_plate.png');
+		let plate_material = new THREE.MeshPhongMaterial({map:plate_texture});
+		let plate = make_wall(2, 1, 0.05, position, plate_material, rotation);
 
 
-		var title_pos = position.clone();
+		let title_pos = position.clone();
 		title_pos.y += 0.2
 		
-		var date_pos = title_pos.clone();
+		let date_pos = title_pos.clone();
 		date_pos.y -= 0.4;
 		make_text(title, 0.1, 0.1, title_pos, black_frame, rotation);
 		make_text(date, 0.1, 0.1, date_pos, black_frame, rotation);
@@ -600,20 +701,20 @@ function render(){
 	    const canvas = renderer.domElement;
 	    camera.aspect = canvas.clientWidth / canvas.clientHeight;
 	    camera.updateProjectionMatrix();
-	    console.log("resizing");
+	    //console.log("resizing");
   	}
 
-	for (var i = ceiling_hedrons.length - 1; i >= 0; i--) {
+	for (let i = ceiling_hedrons.length - 1; i >= 0; i--) {
 		ceiling_hedrons[i].rotateX(0.01);
 		ceiling_hedrons[i].rotateY(0.01);
-		var red = Math.sin(time*i*0.1);
-		var green = Math.cos(time*i*0.1);
-		var blue = Math.sin(time*i*0.1);
-		var color = new THREE.Color(red, green, blue);
+		let red = Math.sin(time*i*0.1);
+		let green = Math.cos(time*i*0.1);
+		let blue = Math.sin(time*i*0.1);
+		let color = new THREE.Color(red, green, blue);
 		ceiling_hedrons[i].material.color = color;
 	}
 
-	for (var j = archway_rings.length - 1; j >= 0; j--){
+	for (let j = archway_rings.length - 1; j >= 0; j--){
 		if (j %2 == 0){
 			archway_rings[j].rotation.z += 0.01;
 		}
@@ -651,29 +752,30 @@ function render(){
 
 
 
-	if (camera.position.x > 100 && camera.position.x < 250 && camera.position.z < -25 && wall_timer <= 1){
-		for (var i = 0; i < wall_tetras_width; i++){
-			for (var j = 0; j < wall_tetras_height; j++){
-				//var trans_x = -0.3 * Math.cos(wall_timer);
-				//var trans_z = 0.3 * Math.cos(wall_timer);
-				var trans_y = 0;
-				var trans_z = 0;
 
-				var tetra = wall_tetras[i * wall_tetras_height + j];
+	if (camera.position.x > 100 && camera.position.x < 250 && camera.position.z < -25 && wall_timer <= 1){
+		for (let i = 0; i < wall_tetras_width; i++){
+			for (let j = 0; j < wall_tetras_height; j++){
+				//let trans_x = -0.3 * Math.cos(wall_timer);
+				//let trans_z = 0.3 * Math.cos(wall_timer);
+				let trans_y = 0;
+				let trans_z = 0;
+
+				let tetra = wall_tetras[i * wall_tetras_height + j];
 
 				if (wall_timer <= 1){
-					var curve_vector = wall_tetra_curve.getPoint(wall_timer);
+					let curve_vector = wall_tetra_curve.getPoint(wall_timer);
 					
 					// Z offset is current position on curve (gives positive)
-					var z_offset = tetra_wall_original_z - tetra.position.z;
+					let z_offset = tetra_wall_original_z - tetra.position.z;
 
 					trans_z = curve_vector.x - z_offset;
 					trans_z = -1 * trans_z; 
 					trans_z = trans_z * 1.0/(1.0+j * 6.5);
 
 
-					// Y offset varies depending on row (gives negative)
-					var y_offset = (-4 + j * 1.5) - tetra.position.y;
+					// Y offset leties depending on row (gives negative)
+					let y_offset = (-4 + j * 1.5) - tetra.position.y;
 
 
 					y_offset = -1 * y_offset;
@@ -686,9 +788,9 @@ function render(){
 
 
 
-					var original_rotation = new THREE.Euler();
+					
 					original_rotation = tetra.rotation.clone();
-					var lookAtpoint = new THREE.Vector3();
+
 					lookAtpoint = tetra.position.clone();
 					lookAtpoint.z += 1;				
 
@@ -731,49 +833,49 @@ function render(){
 	renderer.render( scene, camera );
 }
 
-var w_pressed = false;
-var a_pressed = false;
-var s_pressed = false;
-var d_pressed = false;
-var e_pressed = false;
-var q_pressed = false;
+let w_pressed = false;
+let a_pressed = false;
+let s_pressed = false;
+let d_pressed = false;
+let e_pressed = false;
+let q_pressed = false;
 
 
 function move_forward(){
-	var target = new THREE.Vector3();
-	var lookVec = camera.getWorldDirection(target);  
+	let target = new THREE.Vector3();
+	let lookVec = camera.getWorldDirection(target);  
 	camera.position.x += lookVec.x;
 	//camera.position.y += lookVec.y;
 	camera.position.z += lookVec.z;
 }
 
 function move_backward(){
-	var target = new THREE.Vector3();
-	var lookVec = camera.getWorldDirection(target);  
+	let target = new THREE.Vector3();
+	let lookVec = camera.getWorldDirection(target);  
 	camera.position.x -= lookVec.x;
 	//camera.position.y -= lookVec.y;
 	camera.position.z -= lookVec.z;	
 }
 
 function move_left(){
-	var target = new THREE.Vector3();
-	var lookVec = camera.getWorldDirection(target);  
-	var left_movement = lookVec.applyEuler(rotate_left);
+	let target = new THREE.Vector3();
+	let lookVec = camera.getWorldDirection(target);  
+	let left_movement = lookVec.applyEuler(rotate_left);
 	camera.position.x += left_movement.x;
 	//camera.position.y += left_movement.y;
 	camera.position.z += left_movement.z;
 }
 
 function move_right(){
-	var target = new THREE.Vector3();
-	var lookVec = camera.getWorldDirection(target);  
-	var right_movement = lookVec.applyEuler(rotate_right);
+	let target = new THREE.Vector3();
+	let lookVec = camera.getWorldDirection(target);  
+	let right_movement = lookVec.applyEuler(rotate_right);
 	camera.position.x += right_movement.x;
 	camera.position.z += right_movement.z;
 }
 window.addEventListener('keypress', function(e){
 	//console.log("key Pressed");
-	var pressed_key = event.key;
+	let pressed_key = event.key;
 	//console.log(event.key);
 
   
@@ -807,7 +909,7 @@ window.addEventListener('keypress', function(e){
 });
 
 window.addEventListener('keyup', function(e){
-	var pressed_key = event.key;
+	let pressed_key = event.key;
 	switch (pressed_key){
 		case 's':
 			s_pressed = false;
@@ -822,10 +924,10 @@ window.addEventListener('keyup', function(e){
 })
 
 window.addEventListener('mousemove', function(e){
-	var horizontal_rot = event.movementX * -0.005;
-	var vertical_rot = event.movementY * -0.005;
-	var target = new THREE.Vector3();
-	var lookAtpoint = new THREE.Vector3();
+	let horizontal_rot = event.movementX * -0.005;
+	let vertical_rot = event.movementY * -0.005;
+	let target = new THREE.Vector3();
+	let lookAtpoint = new THREE.Vector3();
 	camera.position.clone(lookAtpoint);
 
 
@@ -846,7 +948,7 @@ window.addEventListener('mousemove', function(e){
 
 
 window.addEventListener('wheel', function(e){
-	var zoom_change = e.deltaY * -0.01;
+	let zoom_change = e.deltaY * -0.01;
 	camera.zoom += zoom_change;
 	if (camera.zoom < 1){
 		camera.zoom = 1;
