@@ -29,6 +29,9 @@ var wall_tetras = [];
 var wall_tetras_width;
 var wall_tetras_height;
 var black_frame = new THREE.MeshPhongMaterial({color:0x000000});
+var add_light = true;
+var tetra_light;
+var tetra_light_pos;
 
 var original_rotation = new THREE.Euler();
 var lookAtpoint = new THREE.Vector3();
@@ -104,7 +107,7 @@ function init(){
 	let figures = load_picture('art/figures.jpg', figures_position, gold_frame, "x+");
 	let figures_plate_position = figures_position.clone();
 	figures_plate_position.y -= 4.5;
- 	make_plate("Red and yellow forms", "04/04/2020", figures_plate_position, Math.PI/2);
+ 	make_plate("2020_04_04_red_and_yellow_forms", figures_plate_position, Math.PI/2);
 
 
 	let misunderstood_position = new THREE.Vector3(-9.8, 3, 15.0);
@@ -384,14 +387,14 @@ function init(){
 	}
 
 	// Hallway
-	let hallway_floor_position = new THREE.Vector3(140, -5, -112.5);
-	let hallway_floor = make_wall(50, 0.1, 125, hallway_floor_position, floor_material);
+	let hallway_floor_position = new THREE.Vector3(140, -5, -300);
+	let hallway_floor = make_wall(50, 0.1, 500, hallway_floor_position, floor_material);
 
-	let hallway_left_wall_position = new THREE.Vector3(114.5, 0, -100.3);
-	let hallway_left_wall = make_wall(0.1, 30, 100, hallway_left_wall_position, left_wall_material);
+	let hallway_left_wall_position = new THREE.Vector3(114.5, 0, -300.3);
+	let hallway_left_wall = make_wall(0.1, 30, 500, hallway_left_wall_position, left_wall_material);
 
-	let hallway_right_wall_position = new THREE.Vector3(164.5, 0, -100.3);
-	let hallway_right_wall = make_wall(0.1, 30, 100, hallway_right_wall_position, left_wall_material);
+	let hallway_right_wall_position = new THREE.Vector3(164.5, 0, -300.3);
+	let hallway_right_wall = make_wall(0.1, 30, 500, hallway_right_wall_position, left_wall_material);
 
 	let hallway_light = new THREE.PointLight(0xffffff, 1, 50);
 	let hallway_light_position = new THREE.Vector3(135, 7, -150);
@@ -616,73 +619,102 @@ function load_picture(src, position, frame, orientation){
 }
 
 
-	// Text
-	function make_text(text, size, height, position, material, rotation=0)
-	{
-		const loader = new THREE.FontLoader();
-		function loadFont(url) {
-	      return new Promise((resolve, reject) => {
-	        loader.load(url, resolve, undefined, reject);
-	      });
-	    }
+// Text
+function make_text(text, size, height, position, material, rotation=0)
+{
+	const loader = new THREE.FontLoader();
+	function loadFont(url) {
+      return new Promise((resolve, reject) => {
+        loader.load(url, resolve, undefined, reject);
+      });
+    }
 
-	    async function doit() {
-	      const font = await loadFont('./fonts/helvetiker_regular.typeface.json');   
-	      const geometry = new THREE.TextBufferGeometry(text, {
-	        font: font,
-	        size: size,
-	        height: height,
-	        curveSegments: 12,
-	        bevelEnabled: false,
-	        bevelThickness: 0.001,
-	        bevelSize: .01,
-	        bevelSegments: 20,
-	      });
+    async function doit() {
+      const font = await loadFont('./fonts/helvetiker_regular.typeface.json');   
+      const geometry = new THREE.TextBufferGeometry(text, {
+        font: font,
+        size: size,
+        height: height,
+        curveSegments: 12,
+        bevelEnabled: false,
+        bevelThickness: 0.001,
+        bevelSize: .01,
+        bevelSegments: 20,
+      });
 
-	 	
+ 	
 
-	 		let text_mesh = new THREE.Mesh(geometry, material);
+ 		let text_mesh = new THREE.Mesh(geometry, material);
 
-	 		geometry.computeBoundingBox();
-	 		geometry.boundingBox.getCenter(text_mesh.position).multiplyScalar(-1);
-	 		const parent = new THREE.Object3D();
-	 		parent.add(text_mesh);
+ 		geometry.computeBoundingBox();
+ 		geometry.boundingBox.getCenter(text_mesh.position).multiplyScalar(-1);
+ 		const parent = new THREE.Object3D();
+ 		parent.add(text_mesh);
 
-	 		parent.translateX(position.x);
-	 		parent.translateY(position.y);
-	 		parent.translateZ(position.z);
-	 		parent.rotateY(rotation);
-	 		//parent.scale = new THREE.Vector3(0.5, 0.5, 0.5);
+ 		parent.translateX(position.x);
+ 		parent.translateY(position.y);
+ 		parent.translateZ(position.z);
+ 		parent.rotateY(rotation);
+ 		//parent.scale = new THREE.Vector3(0.5, 0.5, 0.5);
 
-	 		//let scale = new THREE.Matrix4();
-	 		//scale.makeScale(0.1, 0.1, 0.1);
-	 		//geometry.computeBoundingBox();
-	 		//parent.applyMatrix4(scale);
-	 		//console.log(parent.scale);
-	 		scene.add(parent);
-	 		texts.push(parent);
-	 		return parent;
-	 	}
-	 	doit();
+ 		//let scale = new THREE.Matrix4();
+ 		//scale.makeScale(0.1, 0.1, 0.1);
+ 		//geometry.computeBoundingBox();
+ 		//parent.applyMatrix4(scale);
+ 		//console.log(parent.scale);
+ 		scene.add(parent);
+ 		texts.push(parent);
+ 		return parent;
  	}
- 	// Makes a nameplate for a given piece
- 	// TODO: Make Text Wrapping work for a given plate size
- 	function make_plate(title, date, position, rotation=0){
-		let plate_texture = new THREE.TextureLoader().load('resources/gold_plate.png');
-		let plate_material = new THREE.MeshPhongMaterial({map:plate_texture});
-		let plate = make_wall(2, 1, 0.05, position, plate_material, rotation);
+ 	doit();
+	}
+
+// Makes a nameplate for a given piece
+// TODO: Make Text Wrapping work for a given plate size
+function make_plate(src, position, rotation=0){
+
+	let plate_texture = new THREE.TextureLoader().load('resources/gold_plate.png');
+	let plate_material = new THREE.MeshPhongMaterial({map:plate_texture});
+	let plate = make_wall(2, 1, 0.05, position, plate_material, rotation);
+
+	let title = extract_title(src);
+	let date = extract_date(src);
+	let title_pos = position.clone();
+	title_pos.y += 0.2
+
+	let date_pos = title_pos.clone();
+	date_pos.y -= 0.4;
+	make_text(title, 0.1, 0.1, title_pos, black_frame, rotation);
+	make_text(date, 0.1, 0.1, date_pos, black_frame, rotation);
+	//plate.add(texts[-1]);
+
+}
+
+function extract_date(src){
+	var split_string = src.split("_");
+	var date = ""
+	split_string.forEach(function(string, index){
+		if (!isNaN(string)){
+			date += string;
+			date += "/"
+		}
+	})
 
 
-		let title_pos = position.clone();
-		title_pos.y += 0.2
-		
-		let date_pos = title_pos.clone();
-		date_pos.y -= 0.4;
-		make_text(title, 0.1, 0.1, title_pos, black_frame, rotation);
-		make_text(date, 0.1, 0.1, date_pos, black_frame, rotation);
-		//plate.add(texts[-1]);
+	return date.slice(0, -1);
+}
 
- 	}
+function extract_title(src){
+	var split_string = src.split("_");
+	var date = ""
+	split_string.forEach(function(string, index){
+		if (isNaN(string)){
+			date += string;
+			date += " "
+		}
+	})
+	return date.slice(0, -1);
+}
 
 function animate() {
 	//requestAnimationFrame( animate );
@@ -756,13 +788,9 @@ function render(){
 	if (camera.position.x > 100 && camera.position.x < 250 && camera.position.z < -25 && wall_timer <= 1){
 		for (let i = 0; i < wall_tetras_width; i++){
 			for (let j = 0; j < wall_tetras_height; j++){
-				//let trans_x = -0.3 * Math.cos(wall_timer);
-				//let trans_z = 0.3 * Math.cos(wall_timer);
 				let trans_y = 0;
 				let trans_z = 0;
-
 				let tetra = wall_tetras[i * wall_tetras_height + j];
-
 				if (wall_timer <= 1){
 					let curve_vector = wall_tetra_curve.getPoint(wall_timer);
 					
@@ -773,8 +801,7 @@ function render(){
 					trans_z = -1 * trans_z; 
 					trans_z = trans_z * 1.0/(1.0+j * 6.5);
 
-
-					// Y offset leties depending on row (gives negative)
+					// Y offset varies depending on row (gives negative)
 					let y_offset = (-4 + j * 1.5) - tetra.position.y;
 
 
@@ -782,13 +809,8 @@ function render(){
 					trans_y = curve_vector.y - y_offset;
 					trans_y = trans_y * 1.0/(1.0+j*8);	
 
-					if (j == 0){
-						//console.log(trans_y);
-					}
-
-
-
-					
+				
+					// Rotate all tetrahedrons to same orientation, move, rotate back
 					original_rotation = tetra.rotation.clone();
 
 					lookAtpoint = tetra.position.clone();
@@ -798,18 +820,38 @@ function render(){
 
 					
 					wall_tetras[i * wall_tetras_height + j].translateY(trans_y);
-					wall_tetras[i * wall_tetras_height + j].translateZ(trans_z);
-	
-					
+					wall_tetras[i * wall_tetras_height + j].translateZ(trans_z);	
 
 					tetra.setRotationFromEuler(original_rotation);
-
 				}
-
-			
 			}
 		}
 		wall_timer += 0.01;
+	}
+
+	if (wall_timer >= 1 && camera.position.x > 100 && camera.position.x < 250 && camera.position.z < -35){
+		let middle_bottom_tetra = wall_tetras[wall_tetras_height * 30];
+		original_rotation = middle_bottom_tetra.rotation.clone();
+
+		lookAtpoint = middle_bottom_tetra.position.clone();
+		lookAtpoint.z += 1;				
+		middle_bottom_tetra.lookAt(lookAtpoint);
+
+		if (add_light){
+			tetra_light = new THREE.PointLight(0xffffff, 1, 50);
+			tetra_light_pos = middle_bottom_tetra.position.clone();
+			tetra_light.translateX(tetra_light_pos.x);
+			tetra_light.translateY(tetra_light_pos.y);
+			tetra_light.translateZ(tetra_light_pos.z);
+			tetra_light.translateZ(1);
+			scene.add(tetra_light);
+			//middle_bottom_tetra.add(tetra_light);
+			add_light = false;
+
+		}
+		middle_bottom_tetra.translateZ(-0.1);
+		tetra_light.translateZ(-0.1);
+		//console.log("moving");
 	}
 
 
@@ -825,9 +867,6 @@ function render(){
 	if (s_pressed){
 		move_backward();
 	}
-
-
-
 	time += 0.01
 
 	renderer.render( scene, camera );
