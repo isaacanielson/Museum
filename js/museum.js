@@ -6,7 +6,7 @@
 
 import { VRButton } from './VRButton.js';
 //import * as THREE from './three.js';
-//import { BufferGeometryUtils } from './three.js/examples/jsm/utils/BufferGeometryUtils.js';
+//import { BufferGeometryUtils } from './BufferGeometryUtils.js';
 //import { XRControllerModelFactory} from './XRControllerModelFactory.js'
 
 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -33,9 +33,21 @@ var add_light = true;
 var tetra_light;
 var tetra_light_pos;
 
+var w_pressed = false;
+var a_pressed = false;
+var s_pressed = false;
+var d_pressed = false;
+
 var original_rotation = new THREE.Euler();
 var lookAtpoint = new THREE.Vector3();
 
+var benches = [];
+var raycaster = new THREE.Raycaster();
+var mouse = new THREE.Vector2();
+var target = new THREE.Vector3();
+var intersecting_bench = false;
+var bench_to_sit_on;
+var sitting = false;
 //var controller1, controller2;
 
 var wall_tetra_curve = new THREE.SplineCurve([
@@ -416,10 +428,54 @@ function init(){
 	//let lamp_position = new THREE.Vector3(-9.8, 7.5, 0);
 	//make_lamp(lamp_position);
 
+	// Example bench
+	let bench_position = new THREE.Vector3(7.5, -2, -40);
+	make_bench(bench_position, 20);
+
 
 	camera.position.z = 5;
 	time = 0.0;
 
+}
+
+function make_bench(position, width, rotation=0){
+	let bench = new THREE.Group();
+	let bench_geometries = [];
+	let bench_material = new THREE.MeshPhongMaterial(0xffffff);
+	//bench_material.side = THREE.DoubleSide;
+	let bench_top_geo = new THREE.BoxBufferGeometry(width, 0.5, 2, 2, 2);
+
+
+	let bench_top = new THREE.Mesh(bench_top_geo, bench_material);
+
+	let bench_left_leg_geo = new THREE.BoxBufferGeometry(0.5, 4, 0.5, 2, 2);
+	bench_left_leg_geo.translate(-width/3, -2, 0);
+	let bench_left_leg = new THREE.Mesh(bench_left_leg_geo, bench_material);
+
+	let bench_right_leg_geo = new THREE.BoxBufferGeometry(0.5, 4, 0.5, 2, 2);
+	bench_right_leg_geo.translate(width/3, -2, 0);
+	let bench_right_leg = new THREE.Mesh(bench_right_leg_geo, bench_material);
+
+
+	//bench_geometries.push(bench_top_geo);
+	//bench_geometries.push(bench_right_leg_geo);
+	//bench_geometries.push(bench_left_leg_geo);
+	//let bench_geo = BufferGeometryUtils.mergeGeometries(bench_geometries);
+
+	//let bench = new THREE.Mesh(bench_geo, bench_material);
+	bench.add(bench_top);
+	bench.add(bench_left_leg);
+	bench.add(bench_right_leg);
+
+	bench.translateX(position.x);
+	bench.translateY(position.y);
+	bench.translateZ(position.z);
+
+	//benches.push(bench);
+	benches.push(bench_top);
+
+	//scene.add(bench_top);
+	scene.add(bench);
 }
 
 function CustomLampCurve(scale){
@@ -430,14 +486,10 @@ function CustomLampCurve(scale){
 
 function make_lamp(position, rotation=0){
 
-	//let lamp_geometries = [];
-
 	let lamp = new THREE.Group();
 	let lamp_material = new THREE.MeshPhongMaterial(0xffffff);
 	lamp_material.side =THREE.DoubleSide;
 	let lamp_base_geo = new THREE.BoxBufferGeometry(0.1, 0.5, 2, 2, 2);
-	//lamp_geometries.push(lamp_base_geo);
-	//let lamp_base = new THREE.Mesh(lamp_base_geo, lamp_material);
 
 	let lamp_head_geo = new THREE.CylinderGeometry(0.5, 0.5, 1, 8, 1, false, 0, 4.5);
 	
@@ -463,9 +515,6 @@ function make_lamp(position, rotation=0){
 	let lamp_connector_geo = new THREE.TubeBufferGeometry(lamp_path, 20, 0.2, 8, false);
 
 
-
-	//lamp_connector_geo.rotateX(-Math.PI/2);
-
 	let lamp_connector = new THREE.Mesh(lamp_connector_geo, lamp_material);
 	
 	let lamp_head = new THREE.Mesh(lamp_head_geo, lamp_material);
@@ -474,13 +523,6 @@ function make_lamp(position, rotation=0){
 	lamp.add(lamp_head);
 	lamp.add(lamp_base);
 	lamp.add(lamp_connector);
-	//lamp_geometries.push(lamp_head_geo);
-
-	//let lamp = BufferGeometryUtils.mergeBufferGeometries(lamp_geometries);
-	//let lamp_head = new THREE.Mesh(lamp_head_geo, lamp_material);
-	//let lamp_position = position
-
-
 
 	lamp.translateX(position.x);
 	lamp.translateY(position.y);
@@ -720,14 +762,11 @@ function animate() {
 	//requestAnimationFrame( animate );
 	//renderer.render( scene, camera );
 
-
 	renderer.setAnimationLoop(render)
-
 }
 
 
 function render(){
-
 
 	if (resizeRendererToDisplaySize(renderer)) {
 	    const canvas = renderer.domElement;
@@ -754,9 +793,10 @@ function render(){
 			archway_rings[j].rotation.z -= 0.01;
 		}
 
-
 	}
 
+
+	// Centerpiece handling
 	centerpiece.rotateX(0.01);
 	centerpiece.rotateZ(0.01);
 
@@ -764,8 +804,6 @@ function render(){
 
 	centerpiece_light.translateY(0.1 * Math.sin(time));
 	centerpiece_light.translateZ(0.1 * Math.cos(time));
-
-
 
 	centerpiece_light2.translateY(0.1 * Math.sin(time));
 	centerpiece_light2.translateX(0.1 * Math.cos(time));
@@ -783,8 +821,7 @@ function render(){
 	//sphere.translateOnAxis(y_axis, 0.1 * Math.cos(time));
 
 
-
-
+	// Moving tetrahedron wall
 	if (camera.position.x > 100 && camera.position.x < 250 && camera.position.z < -25 && wall_timer <= 1){
 		for (let i = 0; i < wall_tetras_width; i++){
 			for (let j = 0; j < wall_tetras_height; j++){
@@ -829,6 +866,7 @@ function render(){
 		wall_timer += 0.01;
 	}
 
+	//Hallway light
 	if (wall_timer >= 1 && camera.position.x > 100 && camera.position.x < 250 && camera.position.z < -35){
 		let middle_bottom_tetra = wall_tetras[wall_tetras_height * 30];
 		original_rotation = middle_bottom_tetra.rotation.clone();
@@ -851,8 +889,29 @@ function render(){
 		}
 		middle_bottom_tetra.translateZ(-0.1);
 		tetra_light.translateZ(-0.1);
-		//console.log("moving");
 	}
+
+
+	//Raycasting
+	camera.getWorldDirection(target);
+	raycaster.set(camera.position, target);
+	//console.log(camera.getWorldDirection);
+
+	//console.log(benches);
+	var intersects = raycaster.intersectObjects(benches);
+	//console.log(intersects);
+	if (intersects.length > 0){
+		intersecting_bench = true;
+		bench_to_sit_on = intersects[0].object;
+		intersects[0].object.material.color.set(0xff0000);
+	}
+	else{
+		intersecting_bench = false;
+		for (var i = 0; i < benches.length; i++){
+			benches[i].material.color.set(0xffffff);
+		}
+	}
+
 
 
 	if (a_pressed){
@@ -872,12 +931,6 @@ function render(){
 	renderer.render( scene, camera );
 }
 
-let w_pressed = false;
-let a_pressed = false;
-let s_pressed = false;
-let d_pressed = false;
-let e_pressed = false;
-let q_pressed = false;
 
 
 function move_forward(){
@@ -913,21 +966,19 @@ function move_right(){
 	camera.position.z += right_movement.z;
 }
 window.addEventListener('keypress', function(e){
-	//console.log("key Pressed");
 	let pressed_key = event.key;
-	//console.log(event.key);
-
-  
-
-	//console.log(lookVec);
 	switch(pressed_key){
 		case 's':
-			s_pressed = true;
-			move_backward();
+			if (!sitting){
+				s_pressed = true;
+				move_backward();
+			}
 			break;
 		case 'w':
-			w_pressed = true;
-			move_forward();
+			if (!sitting){
+				w_pressed = true;
+				move_forward();
+			}
 			break;
 		case 'a':
 			a_pressed = true;
@@ -943,6 +994,15 @@ window.addEventListener('keypress', function(e){
 		case 'e':
 			e_pressed = true;
 			camera.rotateZ(-0.1);
+		case 'f':
+			if (intersecting_bench){
+				console.log("sitting");
+				let sitting_position = bench_to_sit_on.position.clone();
+				sitting_position.y += 2;
+				camera.position.set(sitting_position.x, sitting_position.y, sitting_position.z);
+				console.log(camera.position);
+				sitting = true;
+			}
 	}
 	//console.log(event.x);
 });
@@ -969,19 +1029,18 @@ window.addEventListener('mousemove', function(e){
 	let lookAtpoint = new THREE.Vector3();
 	camera.position.clone(lookAtpoint);
 
-
 	// Horizontal rotation about up vector
 	camera.rotateX(vertical_rot);
-
-
 
 	// Vertical rotation about side vector
 	camera.rotateY(horizontal_rot);
 
-
 	//Used to maintain orientation of the upVec
 	camera.getWorldDirection(target);
 	camera.lookAt(camera.position.x + target.x, camera.position.y + target.y, camera.position.z + target.z);
+
+	mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+	mouse.y = -(event.clientY / window.innerHeight)*2 +1;
 
 });
 
@@ -995,8 +1054,5 @@ window.addEventListener('wheel', function(e){
 	camera.updateProjectionMatrix();
 })
 
-
-
-console.log("Start");
 init();
 animate();
