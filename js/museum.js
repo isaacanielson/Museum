@@ -46,6 +46,7 @@ var target = new THREE.Vector3();
 var intersecting_bench = false;
 var bench_to_sit_on;
 var sitting = false;
+var vid_playing = false;
 //var controller1, controller2;
 
 var wall_tetra_curve = new THREE.SplineCurve([
@@ -229,10 +230,23 @@ function init(){
 			observatory_wall_position.z -= wall_offset + half_wall_width;
 			observatory_wall_position.x -= 3 * wall_offset + half_wall_width * 2; 
 		}
-		if (i != 6){
+		if (i != 6 && i != 0 && i != 4){
 			make_wall(0.2, 50, 50, observatory_wall_position, left_wall_material, -Math.PI/4 * i);
 		}
 	}
+
+	let observatory_wall_position = new THREE.Vector3(200, 20, 10);
+	//var vid = document.createElement('skull_video');
+	//vid.src = "art/2020_04_06_exploding_skull.mp4";
+	var video = document.getElementById("skull");
+	
+	
+	var vid_texture = new THREE.VideoTexture(video);
+	vid_texture.minFilter = THREE.LinearFilter;
+	vid_texture.magFilter = THREE.LinearFilter;
+
+	let vid_material = new THREE.MeshPhongMaterial({map:vid_texture});
+	let vid_wall = make_wall(0.2, 50, 50, observatory_wall_position, vid_material, 0);
 
 	/*
 	let white_position = new THREE.Vector3(199.8, observatory_y, 0);
@@ -265,12 +279,15 @@ function init(){
 	}
 
 
-	// Centerpiece 
+	// Centerpiece
+
+	let centerpiece_position = new THREE.Vector3(135, 5, 10); 
+	
 	let centerpiece_geometry = new THREE.TetrahedronBufferGeometry(2, 1);
 	let centerpiece_material = new THREE.MeshPhongMaterial(0xffffff);
 	centerpiece = new THREE.Mesh(centerpiece_geometry, centerpiece_material);
 	//centerpiece.castShadow = true;
-	let centerpiece_position = new THREE.Vector3(135, 5, 10);
+	
 
 	let centerpiece_child_geo = new THREE.TetrahedronBufferGeometry(1, 0);
 	centerpiece_child = new THREE.Mesh(centerpiece_child_geo, centerpiece_material);
@@ -286,7 +303,7 @@ function init(){
 
 
 	scene.add(centerpiece);
-
+	
 	// Centerpiece lighting
 	centerpiece_light = new THREE.PointLight(0xff0000, 1, 75);
 	centerpiece_light.castShadow = true;
@@ -309,6 +326,7 @@ function init(){
 	let centerpiece_light_helper3 = new THREE.PointLightHelper(centerpiece_light3);
 	scene.add(centerpiece_light3);
 	scene.add(centerpiece_light_helper3);
+	
 
 
 
@@ -375,7 +393,7 @@ function init(){
 	//scene.add(helper3);
 
 	tunnel_light = new THREE.PointLight(0xffffff, 1, 25);
-	tunnel_light.position.set(50, -5, 10);
+	tunnel_light.position.set(25, -5, 10);
 	scene.add(tunnel_light);
 	let tunnel_helper = new THREE.PointLightHelper(tunnel_light);
 	//scene.add(tunnel_helper);
@@ -398,9 +416,10 @@ function init(){
 
 	scene.add(sphere);
 
-	let observatory_spotlight = new THREE.SpotLight(0xffffff, 1, 100, Math.PI/8);
-	observatory_spotlight.position.set(centerpiece_position.x, 20, centerpiece_position.z);
+	let observatory_spotlight = new THREE.SpotLight(0xffffff, 1, 100, Math.PI/4);
+	observatory_spotlight.position.set(centerpiece_position.x, 50, centerpiece_position.z);
 	observatory_spotlight.target = sphere;
+
 
 	scene.add(observatory_spotlight);
 
@@ -447,13 +466,13 @@ function init(){
 	let hallway_right_wall = make_wall(0.1, 30, 500, hallway_right_wall_position, left_wall_material);
 
 	let hallway_light = new THREE.PointLight(0xffffff, 1, 50);
-	let hallway_light_position = new THREE.Vector3(135, 7, -150);
+	let hallway_light_position = new THREE.Vector3(135, 7, -100);
 	hallway_light.translateX(hallway_light_position.x);
 	hallway_light.translateY(hallway_light_position.y);
 	hallway_light.translateZ(hallway_light_position.z);
 
 	let hallway_light2 = new THREE.PointLight(0xffffff, 1, 50);
-	let hallway_light2_position = new THREE.Vector3(135, 7, -75);
+	let hallway_light2_position = new THREE.Vector3(135, 7, -50);
 	hallway_light2.translateX(hallway_light2_position.x);
 	hallway_light2.translateY(hallway_light2_position.y);
 	hallway_light2.translateZ(hallway_light2_position.z);
@@ -823,6 +842,7 @@ function render(){
 
 
 	// Centerpiece handling
+	
 	centerpiece.rotateX(0.01);
 	centerpiece.rotateZ(0.01);
 
@@ -837,9 +857,10 @@ function render(){
 	centerpiece_light3.translateY(0.1 * Math.sin(time));
 	centerpiece_light3.translateX(0.1 * Math.cos(time));
 	centerpiece_light3.translateZ(0.1 * Math.cos(time));
+	
 
-	outer_light.translateX(0.1 * Math.sin(time));
-	tunnel_light.translateX(0.1 * -Math.sin(time));
+	//outer_light.translateX(0.1 * Math.sin(time));
+	//tunnel_light.translateX(0.1 * -Math.sin(time));
 
 
 	sphere.translateX(0.1 * Math.sin(time));
@@ -1045,6 +1066,11 @@ window.addEventListener('keypress', function(e){
 				sitting = false;
 			}
 	}
+	if (!vid_playing){
+		let vid = document.getElementById("skull");
+		vid.play();
+		vid_playing = true;
+	}
 	//console.log(event.x);
 });
 
@@ -1081,6 +1107,7 @@ window.addEventListener('mousemove', function(e){
 		camera.getWorldDirection(target);
 		camera.lookAt(camera.position.x + target.x, camera.position.y + target.y, camera.position.z + target.z);
 	}
+
 });
 
 
