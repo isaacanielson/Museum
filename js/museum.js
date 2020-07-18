@@ -6,7 +6,7 @@
 
 import { VRButton } from './VRButton.js';
 //import * as THREE from './three.js';
-//import { BufferGeometryUtils } from './BufferGeometryUtils.js';
+import { BufferGeometryUtils } from './three/examples/jsm/utils/BufferGeometryUtils.js';
 //import { XRControllerModelFactory} from './XRControllerModelFactory.js'
 
 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -26,12 +26,10 @@ var walls = [];
 var texts = [];
 var pictures = [];
 var wall_tetras = [];
-var wall_tetras_width;
-var wall_tetras_height;
+var wall_tetras_width, wall_tetras_height;
 var black_frame = new THREE.MeshPhongMaterial({color:0x000000});
 var add_light = true;
-var tetra_light;
-var tetra_light_pos;
+var tetra_light, tetra_light_pos;
 
 var w_pressed = false;
 var a_pressed = false;
@@ -116,45 +114,85 @@ function init(){
 
 
 	let figures_position = new THREE.Vector3(-9.8, 3, 0);
-	let figures = load_picture('art/figures.jpg', figures_position, gold_frame, "x+");
+	let figures = load_picture('art/2020_04_04_red_and_yellow_forms.jpg', figures_position, gold_frame, 0);
 	let figures_plate_position = figures_position.clone();
 	figures_plate_position.y -= 4.5;
  	make_plate("2020_04_04_red_and_yellow_forms", figures_plate_position, Math.PI/2);
 
 
 	let misunderstood_position = new THREE.Vector3(-9.8, 3, 15.0);
-	let misunderstood = load_picture('art/misunderstood.jpg', misunderstood_position, black_frame, "x+");
+	let misunderstood = load_picture('art/2020_04_04_a_misunderstood_creature.jpg', misunderstood_position, black_frame, 0);
+	let misunderstood_plate_position = misunderstood_position.clone();
+	misunderstood_plate_position.y -= 4.5;
+ 	make_plate("2020_04_04_a_misunderstood_creature", misunderstood_plate_position, Math.PI/2);
 
 	let mushroom_position = new THREE.Vector3(-9.8, 3, -15.0);
-	let mushroom = load_picture('art/mushroom.jpg', mushroom_position, black_frame, "x+");
+	let mushroom = load_picture('art/2020_04_04_rhodotus_palmatus.jpg', mushroom_position, black_frame, 0);
+	let mushroom_plate_position = mushroom_position.clone();
+	mushroom_plate_position.y -= 4.5;
+ 	make_plate("2020_04_04_rhodotus_palmatus", mushroom_plate_position, Math.PI/2);
+
 
 	let needle_position = new THREE.Vector3(-9.8, 3, 30);
-	let needle = load_picture('art/needle.jpg', needle_position, blue_frame, "x+");
+	let needle = load_picture('art/2020_04_04_big_ass_needle.jpg', needle_position, blue_frame, 0);
+	let needle_plate_position = needle_position.clone();
+	needle_plate_position.y -= 4.5;
+ 	make_plate("2020_04_04_big_ass_needle", needle_plate_position, Math.PI/2);
+
 
 	let slouched_position = new THREE.Vector3(-9.8, 3, -30);
-	let slouched = load_picture('art/slouched.jpg', slouched_position, red_frame, "x+");
+	let slouched = load_picture('art/2020_04_04_reclining_female_nude.jpg', slouched_position, red_frame, 0);
+	let slouched_plate_position = slouched_position.clone();
+	slouched_plate_position.y -= 4.5;
+ 	make_plate("2020_04_04_reclining_female_nude", slouched_plate_position, Math.PI/2);
+
 
 	let mask_position = new THREE.Vector3(0, 3, -49.8);
-	let mask = load_picture('art/mask.jpg', mask_position, black_frame, "z+");
+	let mask = load_picture('art/2020_04_04_no_one_cares.jpg', mask_position, black_frame, -Math.PI/2);
+	let mask_plate_position = mask_position.clone();
+	mask_plate_position.x += 4.5;
+ 	make_plate("2020_04_04_no_one_cares", mask_plate_position, 0);
 
 	let anatomy_position = new THREE.Vector3(15.0, 3, -49.8);
-	let anatomy = load_picture('art/anatomy.jpg', anatomy_position, black_frame, "z+");
+	let anatomy = load_picture('art/2020_04_04_skeletal_study.jpg', anatomy_position, black_frame, -Math.PI/2);
+	let anatomy_plate_position = anatomy_position.clone();
+	anatomy_plate_position.x -= 4.5;
+ 	make_plate("2020_04_04_skeletal_study", anatomy_plate_position, 0);
+
 
 	let nude_position = new THREE.Vector3(24.8, 3, -30.0);
-	let nude = load_picture('art/nude.jpg', nude_position, black_frame, "x-");
+	let nude = load_picture('art/2020_04_04_seated_female_nude.jpg', nude_position, black_frame, Math.PI);
+	let nude_plate_position = nude_position.clone();
+	nude_plate_position.z -= 4.5;
+ 	make_plate("2020_04_04_seated_female_nude", nude_plate_position, -Math.PI/2);
+
 
 	let stretch_position = new THREE.Vector3(24.8, 3, -15.0);
-	let stretch = load_picture('art/stretch.jpg', stretch_position, black_frame, "x-");
+	let stretch = load_picture('art/2020_04_01_standing_male_nude.jpg', stretch_position, black_frame, Math.PI);
+	let stretch_plate_position = stretch_position.clone();
+	stretch_plate_position.z += 4.5;
+ 	make_plate("2020_04_01_standing_male_nude", stretch_plate_position, -Math.PI/2);
+
 
 	let bach_position = new THREE.Vector3(24.8, 3, 35.0);
-	let bach = load_picture('art/bach.jpg', bach_position, black_frame, "x-");
+	let bach = load_picture('art/2020_04_01_bach_to_a_punkrocker.jpg', bach_position, black_frame, Math.PI);
+	let bach_plate_position = bach_position.clone();
+	bach_plate_position.z -= 4.5;
+ 	make_plate("2020_04_01_bach_to_a_punkrocker", bach_plate_position, -Math.PI/2);
+
 
 	let comic_position = new THREE.Vector3(0.0, 3, 49.8);
-	let comic = load_picture('art/comic.jpg', comic_position, black_frame, "z-");
+	let comic = load_picture('art/2020_04_04_abandon_ship.jpg', comic_position, black_frame, Math.PI/2);
+	let comic_plate_position = comic_position.clone();
+	comic_plate_position.x += 4.5;
+ 	make_plate("2020_04_04_abandon_ship", comic_plate_position, Math.PI);
+
 
 	let shapes_position = new THREE.Vector3(15.0, 3, 49.8);
-	let shapes = load_picture('art/shapes.jpg', shapes_position, blue_frame, "z-");
-
+	let shapes = load_picture('art/2020_04_01_geometric_shading_studies.jpg', shapes_position, blue_frame, Math.PI/2);
+	let shapes_plate_position = shapes_position.clone();
+	shapes_plate_position.x -= 4.5;
+ 	make_plate("2020_04_01_geometric_shading_studies", shapes_plate_position, Math.PI);
 
 
 	// Observatory
@@ -196,12 +234,13 @@ function init(){
 		}
 	}
 
+	/*
 	let white_position = new THREE.Vector3(199.8, observatory_y, 0);
-	let white = load_picture('art/2020_06_11_white_memorial_chapel.jpg', white_position, silver_frame, "x-");
+	let white = load_picture('art/2020_06_11_white_memorial_chapel.jpg', white_position, silver_frame, Math.PI);
 
 	let akward_position = new THREE.Vector3(199.8, observatory_y, 15);
-	let akward = load_picture('Designs/Designs/akward.jpeg', akward_position, silver_frame, "x-");
-	
+	let akward = load_picture('Designs/Designs/akward.jpeg', akward_position, silver_frame, Math.PI);
+	*/
 
 
 	// Ceiling effect
@@ -347,7 +386,6 @@ function init(){
 	scene.add(outer_light);
 	let outer_helper = new THREE.PointLightHelper(outer_light);
 	//scene.add(outer_helper);
-	white_position = new THREE.Vector3(99.8, 3, 10);
 
 
 	let sphere_geometry = new THREE.SphereBufferGeometry(1, 3, 2);
@@ -429,8 +467,8 @@ function init(){
 	//make_lamp(lamp_position);
 
 	// Example bench
-	let bench_position = new THREE.Vector3(7.5, -2, -40);
-	make_bench(bench_position, 20);
+	//let bench_position = new THREE.Vector3(0, -2, -40);
+	//make_bench(bench_position, 5);
 
 
 	camera.position.z = 5;
@@ -438,14 +476,11 @@ function init(){
 
 }
 
-function make_bench(position, width, rotation=0){
-	let bench = new THREE.Group();
+function make_bench(position, width=5, rotation=0){
 	let bench_geometries = [];
 	let bench_material = new THREE.MeshPhongMaterial(0xffffff);
-	//bench_material.side = THREE.DoubleSide;
+
 	let bench_top_geo = new THREE.BoxBufferGeometry(width, 0.5, 2, 2, 2);
-
-
 	let bench_top = new THREE.Mesh(bench_top_geo, bench_material);
 
 	let bench_left_leg_geo = new THREE.BoxBufferGeometry(0.5, 4, 0.5, 2, 2);
@@ -456,25 +491,18 @@ function make_bench(position, width, rotation=0){
 	bench_right_leg_geo.translate(width/3, -2, 0);
 	let bench_right_leg = new THREE.Mesh(bench_right_leg_geo, bench_material);
 
+	bench_geometries.push(bench_top_geo);
+	bench_geometries.push(bench_right_leg_geo);
+	bench_geometries.push(bench_left_leg_geo);
+	let bench_geo = BufferGeometryUtils.mergeBufferGeometries(bench_geometries);
 
-	//bench_geometries.push(bench_top_geo);
-	//bench_geometries.push(bench_right_leg_geo);
-	//bench_geometries.push(bench_left_leg_geo);
-	//let bench_geo = BufferGeometryUtils.mergeGeometries(bench_geometries);
-
-	//let bench = new THREE.Mesh(bench_geo, bench_material);
-	bench.add(bench_top);
-	bench.add(bench_left_leg);
-	bench.add(bench_right_leg);
+	let bench = new THREE.Mesh(bench_geo, bench_material);
 
 	bench.translateX(position.x);
 	bench.translateY(position.y);
 	bench.translateZ(position.z);
-
-	//benches.push(bench);
-	benches.push(bench_top);
-
-	//scene.add(bench_top);
+	bench.rotateY(rotation);
+	benches.push(bench);
 	scene.add(bench);
 }
 
@@ -484,7 +512,7 @@ function CustomLampCurve(scale){
 	this.scale = ( scale === undefined ) ? 1 : scale;
 }
 
-function make_lamp(position, rotation=0){
+function make_lamp(position, rotation=0, target){
 
 	let lamp = new THREE.Group();
 	let lamp_material = new THREE.MeshPhongMaterial(0xffffff);
@@ -495,7 +523,10 @@ function make_lamp(position, rotation=0){
 	
 	lamp_head_geo.rotateX(Math.PI/2);
 
-	lamp_head_geo.translate(2.5, 0.7, 0);
+	let lamp_head_pos = new THREE.Vector3(2.5, 0.7, 0);
+	lamp_head_geo.translate(lamp_head_pos.x, lamp_head_pos.y, lamp_head_pos.z);
+
+
 
 
 	CustomLampCurve.prototype = Object.create(THREE.Curve.prototype);
@@ -518,6 +549,8 @@ function make_lamp(position, rotation=0){
 	let lamp_connector = new THREE.Mesh(lamp_connector_geo, lamp_material);
 	
 	let lamp_head = new THREE.Mesh(lamp_head_geo, lamp_material);
+
+
 	let lamp_base = new THREE.Mesh(lamp_base_geo, lamp_material);
 
 	lamp.add(lamp_head);
@@ -530,7 +563,19 @@ function make_lamp(position, rotation=0){
 
 	lamp.rotateY(rotation);
 
-	//lamp.material.side = THREE.DoubleSide;
+	let spotLight = new THREE.SpotLight(0xffffff, 0.9, 10, Math.PI/3);
+	let spotLight_pos = lamp.position.clone();
+
+	let rot_eul = new THREE.Euler(0, rotation, 0);
+	lamp_head_pos.applyEuler(rot_eul);
+	spotLight_pos.x += lamp_head_pos.x;
+	spotLight_pos.y += lamp_head_pos.y;
+	spotLight_pos.z += lamp_head_pos.z;
+	spotLight.position.set(spotLight_pos.x, spotLight_pos.y, spotLight_pos.z);
+	spotLight.target = target;
+
+
+	scene.add(spotLight);
 	scene.add(lamp);
 }
 
@@ -564,8 +609,6 @@ function make_wall(width, height, depth, position, material, rotation=0){
 	let wall = new THREE.BoxBufferGeometry(width, height, depth, 2, 2);	
 	let new_wall = new THREE.Mesh(wall, material);
 
-
-
 	new_wall.translateX(position.x);
 	new_wall.translateY(position.y);
 	new_wall.translateZ(position.z);
@@ -579,36 +622,39 @@ function make_wall(width, height, depth, position, material, rotation=0){
 	return new_wall;
 }
 
-function make_picture(position, picture, frame, aspect_ratio, orientation){
-
+function make_picture(position, picture, frame, aspect_ratio, rotation=0){
 	let height = 7.5;
 	let width = height * aspect_ratio;
-	let frame_position = position;
-	let to_return;
-	if (orientation == "x+"){
-		to_return = make_wall(0.02, height, width, position, picture);
-		frame_position.x -= 0.1;
-		make_wall(0.05, height + 0.5, width + 0.5, frame_position, frame)
-	}
-	else if (orientation == "x-"){
-		to_return = make_wall(0.02, height, width, position, picture);
-		frame_position.x += 0.1;
-		make_wall(0.05, height + 0.5, width + 0.5, frame_position, frame)
-	}
-	else if (orientation == "z+"){
-		to_return = make_wall(width, height, 0.02, position, picture);
-		frame_position.z -= 0.1;
-		make_wall(width + 0.5, height + 0.5, 0.05, frame_position, frame);
-	}
-	else if (orientation == "z-"){
-		to_return = make_wall(width, height, 0.02, position, picture);
-		frame_position.z += 0.1;
-		make_wall(width + 0.5, height + 0.5, 0.05, frame_position, frame);
-	}
-	return to_return;
+
+	let pic_and_frame = new THREE.Group();
+
+
+	let le_pic_geo = new THREE.BoxBufferGeometry(0.02, height, width, 2, 2);
+	
+	le_pic_geo.translate(0.1, 0, 0);
+	let le_pic = new THREE.Mesh(le_pic_geo, picture);
+
+
+	let le_frame_geo = new THREE.BoxBufferGeometry(0.05, height + 0.5, width + 0.5, 2, 2);
+
+	let le_frame = new THREE.Mesh(le_frame_geo, frame);
+
+
+	pic_and_frame.add(le_pic);
+
+	pic_and_frame.add(le_frame);
+
+	pic_and_frame.translateX(position.x);
+	pic_and_frame.translateY(position.y);
+	pic_and_frame.translateZ(position.z);
+	pic_and_frame.rotateY(rotation);
+
+	scene.add(pic_and_frame);
+
+	return pic_and_frame;
 }
-// Loads a picture with a given source, position, frame, and orientation (i.e. "z+")
-function load_picture(src, position, frame, orientation){
+// Loads a picture with a given source, position, frame, and orientation (i.e. Math.PI/2)
+function load_picture(src, position, frame, rotation=0){
 	let new_img = new Image();
 	new_img.onload = function(){
 		let width = this.width;
@@ -617,46 +663,26 @@ function load_picture(src, position, frame, orientation){
 		let texture = new THREE.TextureLoader().load(this.src);
 
 		let material = new THREE.MeshPhongMaterial({map:texture});
-		//let position = new THREE.Vector3(-9.8, 0, 7.5);
-		let pic = make_picture(position, material, frame, aspect_ratio, orientation);
-		//console.log(pic);
 
-		let spotLight = new THREE.SpotLight(0xffffff, 0.9, 10, Math.PI/3);
-		let spotLight_position = pic.position.clone();
-		spotLight_position.y += 5.0;
-		
-		if (orientation == "x+"){
-			make_lamp(spotLight_position);
-			spotLight_position.x += 2.5;
-			
-		}
-		else if (orientation == "x-"){
-			make_lamp(spotLight_position, Math.PI);
-			spotLight_position.x -= 2.5;
-			
-		}
-		else if (orientation == "z+"){
-			make_lamp(spotLight_position, -Math.PI/2);
-			spotLight_position.z += 2.5;
-			
-		}
-		else if (orientation == "z-"){
-			make_lamp(spotLight_position, Math.PI/2);
-			spotLight_position.z -= 2.5;
-			
-		}
+		let pic = make_picture(position, material, frame, aspect_ratio, rotation);
 
-		spotLight.position.set(spotLight_position.x, spotLight_position.y, spotLight_position.z);
-		
-		spotLight.target = pic;
-		//console.log(spotLight.target);
-		let spotLighthelper = new THREE.SpotLightHelper(spotLight);
-		spotLighthelper.target = pic;
-		scene.add(spotLight);
-		//ascene.add(spotLighthelper);
+		let lamp_position = pic.position.clone();
+		//let bench_position = pic.position.clone();
+
+		lamp_position.y += 5.0;
+		make_lamp(lamp_position, rotation, pic);
+
+		let bench_position = pic.position.clone();
+
+		let bench_offset = new THREE.Vector3(0, -5, 7);
+		bench_offset.applyEuler(new THREE.Euler(0, Math.PI/2 + rotation, 0));
+
+		bench_position.addVectors(bench_position, bench_offset);
+		make_bench(bench_position, 5, Math.PI/2 + rotation);
 		
 	}
 	new_img.src = src;
+
 
 }
 
@@ -981,12 +1007,19 @@ window.addEventListener('keypress', function(e){
 			}
 			break;
 		case 'a':
-			a_pressed = true;
-			move_left();
+			if (!sitting){
+				a_pressed = true;
+				move_left();
+			}
+			else{
+
+			}
 			break;
 		case 'd':
-			d_pressed = true;
-			move_right();
+			if (!sitting){
+				d_pressed = true;
+				move_right();
+			}
 			break;
 		case 'q':
 			q_pressed = true;
@@ -995,13 +1028,21 @@ window.addEventListener('keypress', function(e){
 			e_pressed = true;
 			camera.rotateZ(-0.1);
 		case 'f':
-			if (intersecting_bench){
-				console.log("sitting");
+			if (intersecting_bench && !sitting){
 				let sitting_position = bench_to_sit_on.position.clone();
-				sitting_position.y += 2;
+				sitting_position.y += 3;
 				camera.position.set(sitting_position.x, sitting_position.y, sitting_position.z);
-				console.log(camera.position);
+			
+				let lookAtpoint = new THREE.Vector3(0, 0, -1);
+				lookAtpoint.applyEuler(bench_to_sit_on.rotation);
+				lookAtpoint.addVectors(camera.position,lookAtpoint);
+				lookAtpoint.y += 0.1;
+				camera.lookAt(lookAtpoint);
 				sitting = true;
+			}
+			else if (sitting){
+				camera.position.y -= 1;
+				sitting = false;
 			}
 	}
 	//console.log(event.x);
@@ -1023,25 +1064,23 @@ window.addEventListener('keyup', function(e){
 })
 
 window.addEventListener('mousemove', function(e){
-	let horizontal_rot = event.movementX * -0.005;
-	let vertical_rot = event.movementY * -0.005;
-	let target = new THREE.Vector3();
-	let lookAtpoint = new THREE.Vector3();
-	camera.position.clone(lookAtpoint);
+	if (!sitting){
+		let horizontal_rot = event.movementX * -0.005;
+		let vertical_rot = event.movementY * -0.005;
+		let target = new THREE.Vector3();
+		let lookAtpoint = new THREE.Vector3();
+		camera.position.clone(lookAtpoint);
 
-	// Horizontal rotation about up vector
-	camera.rotateX(vertical_rot);
+		// Horizontal rotation about up vector
+		camera.rotateX(vertical_rot);
 
-	// Vertical rotation about side vector
-	camera.rotateY(horizontal_rot);
+		// Vertical rotation about side vector
+		camera.rotateY(horizontal_rot);
 
-	//Used to maintain orientation of the upVec
-	camera.getWorldDirection(target);
-	camera.lookAt(camera.position.x + target.x, camera.position.y + target.y, camera.position.z + target.z);
-
-	mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-	mouse.y = -(event.clientY / window.innerHeight)*2 +1;
-
+		//Used to maintain orientation of the upVec
+		camera.getWorldDirection(target);
+		camera.lookAt(camera.position.x + target.x, camera.position.y + target.y, camera.position.z + target.z);
+	}
 });
 
 
