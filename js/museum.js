@@ -1043,10 +1043,8 @@ window.addEventListener('keypress', function(e){
 			}
 			break;
 		case 'q':
-			q_pressed = true;
 			camera.rotateZ(0.2);
 		case 'e':
-			e_pressed = true;
 			camera.rotateZ(-0.1);
 		case 'f':
 			if (intersecting_bench && !sitting){
