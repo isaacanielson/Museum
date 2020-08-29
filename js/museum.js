@@ -8,7 +8,6 @@ import { VRButton } from './VRButton.js';
 //import * as THREE from './three.js';
 import { BufferGeometryUtils } from './three/examples/jsm/utils/BufferGeometryUtils.js';
 //import { XRControllerModelFactory} from './XRControllerModelFactory.js'
-
 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 var scene = new THREE.Scene();
 
@@ -47,6 +46,7 @@ var intersecting_bench = false;
 var bench_to_sit_on;
 var sitting = false;
 var vid_playing = false;
+
 //var controller1, controller2;
 
 var wall_tetra_curve = new THREE.SplineCurve([
@@ -59,6 +59,9 @@ var wall_tetra_curve = new THREE.SplineCurve([
 
 var curve_points = wall_tetra_curve.getPoints(50);
 var tetra_wall_original_z = -50;
+
+//var stats = new Stats.Stats();
+//stats.showPanel(0);
 
 function init(){
 
@@ -231,7 +234,7 @@ function init(){
 			observatory_wall_position.x -= 3 * wall_offset + half_wall_width * 2; 
 		}
 		if (i != 6 && i != 0 && i != 4){
-			make_wall(0.2, 50, 50, observatory_wall_position, left_wall_material, -Math.PI/4 * i);
+			make_wall(0.2, 50, 50, observatory_wall_position, left_wall_material, -Math.PI/4 * i, true);
 		}
 	}
 
@@ -280,38 +283,38 @@ function init(){
 
 
 	// Centerpiece
+	let centerpiece_position = new THREE.Vector3(137.5, 12.5, 10);
+	let gallery_text_position = new THREE.Vector3(130, 12.5, 17.5); 
+	let red_text_position = new THREE.Vector3(130, 12.5, 2.5);
 
-	let centerpiece_position = new THREE.Vector3(135, 5, 10); 
-	
-	let centerpiece_geometry = new THREE.TetrahedronBufferGeometry(2, 1);
 	let centerpiece_material = new THREE.MeshPhongMaterial(0xffffff);
+	
+	let centerpiece_geometry = new THREE.TetrahedronBufferGeometry(0.1, 1);
+
 	centerpiece = new THREE.Mesh(centerpiece_geometry, centerpiece_material);
 	//centerpiece.castShadow = true;
-	
+	//centerpiece.add(outline);
 
-	let centerpiece_child_geo = new THREE.TetrahedronBufferGeometry(1, 0);
-	centerpiece_child = new THREE.Mesh(centerpiece_child_geo, centerpiece_material);
-	centerpiece_child.translateZ(5);
+	//let centerpiece_child_geo = new THREE.TetrahedronBufferGeometry(1, 0);
+	//centerpiece_child = new THREE.Mesh(centerpiece_child_geo, centerpiece_material);
+	//centerpiece_child.translateZ(5);
 	//centerpiece_child.castShadow = true;
-	centerpiece.add(centerpiece_child);
+	//centerpiece.add(centerpiece_child);
 
 	centerpiece.translateX(centerpiece_position.x);
 	centerpiece.translateY(centerpiece_position.y);
 	centerpiece.translateZ(centerpiece_position.z);
-
-
-
-
 	scene.add(centerpiece);
 	
 	// Centerpiece lighting
-	centerpiece_light = new THREE.PointLight(0xff0000, 1, 75);
+	centerpiece_light = new THREE.PointLight(0xffffff, 1, 75);
 	centerpiece_light.castShadow = true;
 	centerpiece_light.position.set(centerpiece_position.x, 0, centerpiece_position.z);
-	let centerpiece_light_helper = new THREE.PointLightHelper(centerpiece_light);
+	//let centerpiece_light_helper = new THREE.PointLightHelper(centerpiece_light);
 	scene.add(centerpiece_light);
-	scene.add(centerpiece_light_helper);
+	//scene.add(centerpiece_light_helper);
 
+	/*
 	centerpiece_light2 = new THREE.PointLight(0x0000ff, 1, 75);
 	centerpiece_light2.castShadow = true;
 	centerpiece_light2.position.set(centerpiece_position.x, 0, centerpiece_position.z);
@@ -326,30 +329,32 @@ function init(){
 	let centerpiece_light_helper3 = new THREE.PointLightHelper(centerpiece_light3);
 	scene.add(centerpiece_light3);
 	scene.add(centerpiece_light_helper3);
-	
+	*/
 
 
+	var red_light = new THREE.SpotLight(0xff0000, 1, 0, Math.PI/20);
+	red_light.castShadow = true;
+	red_light.position.set(centerpiece_position.x - 30, centerpiece_position.y, centerpiece_position.z - 30);
+	red_light.target = centerpiece;
+	scene.add(red_light);
 
-	// Archway
-	archway_rings = [];
-	for (let i = 0; i < 25; i++){
-		let ring_geometry = new THREE.RingBufferGeometry(6, 15, 8);
-		let ring_color = new THREE.Color(0 + i * 1.0/25.0, 0 + i * 1.0/25.0, 0 + i * 1.0/50.0);
-		let ring_material = new THREE.MeshPhongMaterial({color:ring_color, side: THREE.DoubleSide});
-		let ring = new THREE.Mesh(ring_geometry, ring_material);
+	var green_light = new THREE.SpotLight(0x00ff00, 1, 0, Math.PI/20);
+	green_light.castShadow = true;
+	green_light.position.set(centerpiece_position.x - 30, centerpiece_position.y, centerpiece_position.z + 30);
+	green_light.target = centerpiece;
+	scene.add(green_light);
+
+	make_text("Red Light Crypt", 1, 1, red_text_position, black_frame, 5*Math.PI/4, true);
+	make_text("The Gallery", 1, 1, gallery_text_position, black_frame, -Math.PI/4, false);
+
+	let red_arrow_position = new THREE.Vector3(red_text_position.x + 0.5, red_text_position.y - 2,red_text_position.z - 0.5);	
+	make_arrow(red_arrow_position, Math.PI/4);
 
 
-		let ring_position = new THREE.Vector3(30 + i * 2, 2, 10);
+	let green_arrow_position = new THREE.Vector3(gallery_text_position.x + 0.5, gallery_text_position.y - 2, gallery_text_position.z +0.5);	
+	make_arrow(green_arrow_position, -Math.PI/4);
 
-		ring.translateX(ring_position.x);
-		ring.translateY(ring_position.y);
-		ring.translateZ(ring_position.z);
-		ring.rotateY(Math.PI/2);
-		archway_rings.push(ring);
-		scene.add(archway_rings[i]);
-
-	}
-
+	//scene.add(outline);
 
 	//Dome
 	let points = [];
@@ -446,7 +451,6 @@ function init(){
 
 			tetra.rotateX(Math.PI/6);
 			tetra.rotateY(Math.PI/4);
-
 			//tetra.lookAt(tetra_position.x, tetra_position.y, tetra_position.z + 1);
 
 			scene.add(tetra);
@@ -454,6 +458,17 @@ function init(){
 
 		}
 	}
+
+	var archway_left_pos = new THREE.Vector3(50, 5, -1);
+	var archway_right_pos = new THREE.Vector3(50, 5, 21);
+
+	make_tetra_wall(archway_left_pos, 60, 15);
+
+	make_tetra_wall(archway_right_pos, 60, 15, Math.PI);
+
+	var tetra_floor_pos = new THREE.Vector3(49, -6, 10);
+	make_tetra_wall(tetra_floor_pos, 60, 15, 0, -Math.PI/2);
+
 
 	// Hallway
 	let hallway_floor_position = new THREE.Vector3(140, -5, -300);
@@ -492,6 +507,97 @@ function init(){
 
 	camera.position.z = 5;
 	time = 0.0;
+
+}
+
+
+function make_arrow(position, rotationY=0, rotationX=0, length=2){
+	var outline_geometries = []
+
+	let left_outline_geometry = new THREE.BoxBufferGeometry(0.2, 1, 0.2);
+	left_outline_geometry.rotateZ(Math.PI/4);
+	left_outline_geometry.translate(-1.2, -0.3, 0);
+	
+
+	let top_arrow_outline_geometry = new THREE.BoxBufferGeometry(0.2, 1, 0.2);
+	top_arrow_outline_geometry.rotateZ(-Math.PI/4);
+	top_arrow_outline_geometry.translate(-1.2, 0.3, 0);
+	
+
+	let top_outline_geometry = new THREE.BoxBufferGeometry(length, 0.2, 0.2);
+	top_outline_geometry.translate(-length/4, 0, 0);
+	
+
+
+	
+
+
+	outline_geometries.push(left_outline_geometry);
+	outline_geometries.push(top_outline_geometry);
+	outline_geometries.push(top_arrow_outline_geometry);
+
+	let outline_material = new THREE.MeshPhongMaterial(0xffffff);
+
+	let outline_geometry = BufferGeometryUtils.mergeBufferGeometries(outline_geometries);
+
+	let outline = new THREE.Mesh(outline_geometry,outline_material );
+
+	outline.translateX(position.x);
+	outline.translateY(position.y);
+	outline.translateZ(position.z);
+	outline.rotateY(rotationY);
+	outline.rotateX(rotationX);
+	outline.castShadow = true;
+
+	scene.add(outline);
+	
+}
+
+function make_tetra_wall(position, width, height, rotation=0, rotateX=0){
+	var wall_tetras_height = height;
+	var wall_tetras_width = width;
+	var wall_tetras_list = [];
+	for (let i = 0; i < wall_tetras_width; i++){
+		for (let j = 0; j < wall_tetras_height; j++){
+			var tetra_geometry = new THREE.TetrahedronBufferGeometry(1, 0);
+			let tetra_position = new THREE.Vector3(i * 0.8, j * 1.5, 0);		
+
+			tetra_geometry.rotateY(Math.PI/4);
+			tetra_geometry.rotateX(Math.PI/6);
+			
+			if (i % 2 == 0){
+				tetra_geometry.rotateZ(Math.PI/3);
+				tetra_geometry.translate(0, -0.5, 0);
+				
+			}	
+			tetra_geometry.translate(tetra_position.x, tetra_position.y, tetra_position.z);
+			wall_tetras_list.push(tetra_geometry);
+
+		}
+	}
+	var tetra_wall_geo = BufferGeometryUtils.mergeBufferGeometries(wall_tetras_list, false);
+	var tetra_material = new THREE.MeshPhongMaterial(0xffffff);
+	var tetra_wall = new THREE.Mesh(tetra_wall_geo, tetra_material);
+	
+	tetra_wall_geo.computeBoundingBox();
+	tetra_wall_geo.boundingBox.getCenter(tetra_wall.position).multiplyScalar(-1);
+	
+	const parent = new THREE.Object3D();
+	parent.add(tetra_wall);
+
+
+
+	parent.translateX(position.x);
+	parent.translateY(position.y);
+	parent.translateZ(position.z);
+
+	parent.rotateY(rotation);
+	parent.rotateX(rotateX);
+	
+
+
+	scene.add(parent);
+
 
 }
 
@@ -624,7 +730,7 @@ function add_plane(vertices, color=wall_color, side=THREE.DoubleSide){
 
 // Makes a box with given w,h,d,pos,and material
 // Position is center of wall
-function make_wall(width, height, depth, position, material, rotation=0){
+function make_wall(width, height, depth, position, material, rotation=0, receiveShadow=false){
 	let wall = new THREE.BoxBufferGeometry(width, height, depth, 2, 2);	
 	let new_wall = new THREE.Mesh(wall, material);
 
@@ -634,8 +740,10 @@ function make_wall(width, height, depth, position, material, rotation=0){
 	//new_wall.translate(position.x, position.y, position.z);
 	new_wall.rotateY(rotation);
 	//new_wall.receiveShadow = true;
-	
-
+	if (receiveShadow){
+		new_wall.receiveShadow = true;
+		//console.log("Double sided");
+	}
 	scene.add(new_wall);
 	walls.push(new_wall);
 	return new_wall;
@@ -732,6 +840,7 @@ function make_text(text, size, height, position, material, rotation=0)
  	
 
  		let text_mesh = new THREE.Mesh(geometry, material);
+ 		text_mesh.castShadow = true;
 
  		geometry.computeBoundingBox();
  		geometry.boundingBox.getCenter(text_mesh.position).multiplyScalar(-1);
@@ -754,7 +863,7 @@ function make_text(text, size, height, position, material, rotation=0)
  		return parent;
  	}
  	doit();
-	}
+}
 
 // Makes a nameplate for a given piece
 // TODO: Make Text Wrapping work for a given plate size
@@ -820,6 +929,7 @@ function render(){
 	    //console.log("resizing");
   	}
 
+  	/*
 	for (let i = ceiling_hedrons.length - 1; i >= 0; i--) {
 		ceiling_hedrons[i].rotateX(0.01);
 		ceiling_hedrons[i].rotateY(0.01);
@@ -839,10 +949,11 @@ function render(){
 		}
 
 	}
+	*/
 
 
 	// Centerpiece handling
-	
+	/*
 	centerpiece.rotateX(0.01);
 	centerpiece.rotateZ(0.01);
 
@@ -857,14 +968,15 @@ function render(){
 	centerpiece_light3.translateY(0.1 * Math.sin(time));
 	centerpiece_light3.translateX(0.1 * Math.cos(time));
 	centerpiece_light3.translateZ(0.1 * Math.cos(time));
+	*/
 	
 
 	//outer_light.translateX(0.1 * Math.sin(time));
 	//tunnel_light.translateX(0.1 * -Math.sin(time));
 
 
-	sphere.translateX(0.1 * Math.sin(time));
-	sphere.translateZ(0.1 * Math.cos(time));
+	//sphere.translateX(0.1 * Math.sin(time));
+	//sphere.translateZ(0.1 * Math.cos(time));
 	//sphere.translateOnAxis(y_axis, 0.1 * Math.cos(time));
 
 
@@ -958,8 +1070,6 @@ function render(){
 			benches[i].material.color.set(0xffffff);
 		}
 	}
-
-
 
 	if (a_pressed){
 		move_left();
